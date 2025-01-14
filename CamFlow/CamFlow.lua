@@ -9,6 +9,12 @@ local FollowingMode = true --[[ Elige el tipo de desplazamiento que quieres usar
     false = camFollow
     [default true]
     ]]
+local CameraSpeedOff = true --[[ Puedes desactivar el cameraSpeed en el script,
+    Si ya tienes en otro script que ya hace lo mismo,
+    Es para evitar problemas si otro script esta usando el cameraSpeed.
+    [default true]
+    ]]
+local CameraSpeed = 1 -- Velocidad de la cámara [default 1]
 local CustomCam = false --[[ Personaliza la pocision de las cámaras:
     true = Cámaras personalizadas 
     false = Cámaras por defecto del Psych Engine
@@ -30,14 +36,14 @@ local camY_gf = 450
 local directionOffsets = {
     -- [opponentStrums]
     {-1,0}, -- Izquierda [Note 0]
-    {0,1},  -- Abajo [Note 1]
+    {0,1}, -- Abajo [Note 1]
     {0,-1}, -- Arriba [Note 2]
-    {1,0},   -- Derecha [Note 3]
+    {1,0}, -- Derecha [Note 3]
     -- [playerStrums]
     {-1,0}, -- Izquierda [Note 4]
-    {0,1},  -- Abajo [Note 5]
+    {0,1}, -- Abajo [Note 5]
     {0,-1}, -- Arriba [Note 6]
-    {1,0}   -- Derecha [Note 7]
+    {1,0} -- Derecha [Note 7]
 }
 function onCreatePost()
     if not CustomCam then
@@ -50,6 +56,7 @@ function onCreatePost()
     end
 end
 function onUpdatePost(elapsed)
+    if not CameraSpeedOff then setProperty('cameraSpeed',CameraSpeed) end
     local offsetX = FollowingMode and 0 or not FollowingMode and ((mustHitSection and camX_player or camX_opponent) or gfSection and camX_gf)
     local offsetY = FollowingMode and 0 or not FollowingMode and ((mustHitSection and camY_player or camY_opponent) or gfSection and camY_gf)
     if CamFlow then
