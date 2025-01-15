@@ -1,5 +1,5 @@
 --[[
-    | Event: flashLines | - | By LuaXdea [Coder] |
+    | Event: FlashLua | - | By LuaXdea [Coder] |
     [YouTube]: https://youtube.com/@lua-x-dea?si=6AIgRDcOr08Aw22Y
 ]]
 function onCreate()
