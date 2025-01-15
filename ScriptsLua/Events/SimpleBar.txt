@@ -1,0 +1,15 @@
+SimpleBar | by LuaXdea
+
+Value1: time,horizontal bars "a"
+Si colocas "A" después de el time
+usarás las barras horizontales
+Value2: MoveBars
+
+Ejemplos:
+(Barras verticales)
+Value1: 1
+Value2: 90
+Segundo ejemplo:
+(Barras horizontales)
+Value1: 2,a
+Value2: 120
