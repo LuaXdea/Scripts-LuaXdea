@@ -1,0 +1,14 @@
+flashLines | by LuaXdea
+
+Value1: Número de líneas (ejemplo: 3,6).
+O también r/random para líneas aleatorias.
+Máximo de líneas de 1 a 10.
+Value2: Duración de las líneas.
+(solo funciona si Value1 es r o random).
+
+Ejemplos:
+Value1: 3,6
+Value2: No es necesario
+Segundo ejemplo:
+Value1: r
+Value2: 0.1,1
