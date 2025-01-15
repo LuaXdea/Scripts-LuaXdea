@@ -1,0 +1,12 @@
+FlashLua | by LuaXdea
+
+Value1: Alpha,Monochromatic
+    Monochromatic: true = blanco, false = negro
+Value2: Duración
+
+Ejemplos:
+Value1: 1
+Value2: 0.5
+Segundo ejemplo:
+Value1: 0.8,false
+Value2: 1
