@@ -1,9 +1,8 @@
--- | CamFlow v1.0 | By LuaXdea |
+-- | CamFlow v1.1 | By LuaXdea |
 -- [YouTube]: https://youtube.com/@lua-x-dea?si=NRm2RlRsL8BLxAl5
 
 -- | Configuración |
 local CamFlow = true -- Activa el CamFlow [default true]
-local Offsets = 25 -- Desplazamiento de cámara [default 25]
 local FollowingMode = true --[[ Elige el tipo de desplazamiento que quieres usar:
     true = targetOffset
     false = camFollow
@@ -32,6 +31,17 @@ local camY_player = 600
 local camX_gf = 650
 local camY_gf = 450
 
+
+-- | Offsets |
+local IndividualOffsets = false -- Es para si quieres usar los Offsets por individual [default false]
+local GeneralOffset = 20 -- Reemplaza a los offsets de dad,boyfriend y gf si el IndividualOffsets está en false [default 20]
+
+-- | Offsets de las cámaras |
+-- Offset: Define hasta dónde puede desplazarse la cámara al seguir a los personajes.
+local offset_opponent = 20
+local offset_player = 20
+local offset_gf = 20
+
 -- | Dirección de desplazamiento |
 local directionOffsets = {
     -- [opponentStrums]
@@ -59,9 +69,10 @@ function onUpdatePost(elapsed)
     if not CameraSpeedOff then setProperty('cameraSpeed',CameraSpeed) end
     local offsetX = FollowingMode and 0 or not FollowingMode and ((mustHitSection and camX_player or camX_opponent) or gfSection and camX_gf)
     local offsetY = FollowingMode and 0 or not FollowingMode and ((mustHitSection and camY_player or camY_opponent) or gfSection and camY_gf)
+    local Offsets = IndividualOffsets and (gfSection and offset_gf or mustHitSection and offset_player or offset_opponent) or GeneralOffset
     if CamFlow then
         for i = 0,7 do
-            if getProperty('strumLineNotes.members['..i..'].animation.curAnim.name') == 'confirm' then
+            if getPropertyFromGroup('strumLineNotes',i,'animation.curAnim.name') == 'confirm' then
                 offsetX = offsetX + directionOffsets[i + 1][1] * Offsets
                 offsetY = offsetY + directionOffsets[i + 1][2] * Offsets
             end
