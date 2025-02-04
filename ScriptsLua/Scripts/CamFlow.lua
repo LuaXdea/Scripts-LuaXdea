@@ -1,4 +1,4 @@
--- | CamFlow v1.1 | By LuaXdea |
+-- | CamFlow v1.1 Fix | By LuaXdea |
 -- [YouTube]: https://youtube.com/@lua-x-dea?si=NRm2RlRsL8BLxAl5
 
 -- | Configuración |
@@ -67,8 +67,8 @@ function onCreatePost()
 end
 function onUpdatePost(elapsed)
     if not CameraSpeedOff then setProperty('cameraSpeed',CameraSpeed) end
-    local offsetX = FollowingMode and 0 or not FollowingMode and ((mustHitSection and camX_player or camX_opponent) or gfSection and camX_gf)
-    local offsetY = FollowingMode and 0 or not FollowingMode and ((mustHitSection and camY_player or camY_opponent) or gfSection and camY_gf)
+    local offsetX = FollowingMode and 0 or not FollowingMode and gfSection and camX_gf or (mustHitSection and camX_player or camX_opponent)
+    local offsetY = FollowingMode and 0 or not FollowingMode and gfSection and camY_gf or (mustHitSection and camY_player or camY_opponent)
     local Offsets = IndividualOffsets and (gfSection and offset_gf or mustHitSection and offset_player or offset_opponent) or GeneralOffset
     if CamFlow then
         for i = 0,7 do
@@ -78,8 +78,8 @@ function onUpdatePost(elapsed)
             end
         end
         if FollowingMode then
-            FollowX = (mustHitSection and camX_player or camX_opponent) or gfSection and camX_gf
-            FollowY = (mustHitSection and camY_player or camY_opponent) or gfSection and camY_gf
+            FollowX = gfSection and camX_gf or (mustHitSection and camX_player or camX_opponent)
+            FollowY = gfSection and camY_gf or (mustHitSection and camY_player or camY_opponent)
             setProperty('camFollow.x',FollowX)
             setProperty('camFollow.y',FollowY)
         end
