@@ -1,68 +1,86 @@
--- | HUD MINI FLOW v0.1 | By LuaXdea |
+-- | HUD MINI FLOW v0.2 Test | By LuaXdea |
 -- [YouTube]: https://youtube.com/@lua-x-dea?si=NRm2RlRsL8BLxAl5
 
 -- | Psych Engine | Supported versions |
 -- • 0.7.2h • 0.7.3
--- • 1.0.2h
 
 
 -- | Configuración |
 
 -- | General settings |
-local Intro = true -- La presentación [default true]
-local ColorBarVanilla = false -- Cambia el color de la barra de vida al del Base Engine [default false]
+local Intro = true -- La presentación [default: true]
+local ColorBarVanilla = false -- Cambia el color de la barra de vida al del Base Engine [default: false]
 local HealthBarColorFix = true --[[ Si el color de la barra,
     de vida de DAD y BF son iguales o muy similares,
     se hará un ajuste en el color para que no sean iguales
-    [default true]
+    [default: true]
     ]]
 
 
+-- | Disable settings |
+local DisableDownScroll = false -- Evita que el jugador active el DownScroll [default: false]
+local DisableMiddleScroll = false -- Evita que el jugador active el MiddleScroll [default: false]
+local DisableGhostTapping = false -- Evita que el jugador active el GhostTapping [default: false]
+local DisableHideHud = false -- Evita que el jugador active el HideHud [default: false]
+local DisableScoreZoom = false -- Evita que el jugador active el ScoreZoom [default: false]
+local DisableFlashingLights = false -- Evita que el jugador active el FlashingLights [default: false]
+local DisableLowQuality = false -- Evita que el jugador active el LowQuality [default: false]
+local DisableShadersEnabled = false -- Evita que el jugador active los shaders [default: false]
+local DisableCameraZoom = false --[[ Desactiva el zoom de la cámara,
+    incluyendo el evento "Add Camera Zoom" 
+    [default: false]
+    ]]
+local SkipCountdown = false -- Omite la cuenta regresiva del inicio de la canción [default: false]
+local DisablePause = false -- Impide que el jugador pueda pausar el juego [default: false]
+
+
 -- | UI settings |
-local ForceScroll = false -- Forzar el desplazamiento todo el UI [default false]
-local ScrollX = 0 -- Desplazamiento X (Requiere ForceScroll) [default 0]
-local ScrollY = 0 -- Desplazamiento Y (Requiere ForceScroll) [default 0]
-local IconScaleX = 0.7 -- Por cada Beat hará un cambio en su scaleX [default 0.7]
-local IconScaleY = 0.7 -- Por cada Beat hará un cambio en su scaleY [default 0.7]
+local ForceScroll = false -- Forzar el desplazamiento todo el UI [default: false]
+local ScrollX = 0 -- Desplazamiento X (Requiere ForceScroll) [default: 0]
+local ScrollY = 0 -- Desplazamiento Y (Requiere ForceScroll) [default: 0]
+local IconScaleX = 0.6 -- EscalaX base de los iconos [default: 0.6]
+local IconScaleY = 0.6 -- EscalaY base de los iconos [default: 0.6]
+local IconScaleBeatX = 0.7 -- Por cada Beat hará un cambio en su escalaX [default: 0.7]
+local IconScaleBeatY = 0.7 -- Por cada Beat hará un cambio en su escalaY [default: 0.7]
 
 
 -- | Health |
-local HealthDrainOp = true -- El oponente te drena vida [default true]
-local Drain = 0.023 -- Drenado de vida (Requiere HealthDrainOp) [default 0.023]
-local MinHealth = 0.4 -- Límite de drenado (Requiere HealthDrainOp) [default 0.4]
+local HealthDrainOp = true -- El oponente te drena vida [default: true]
+local Drain = 0.023 -- Drenado de vida (Requiere HealthDrainOp) [default: 0.023]
+local MinHealth = 0.4 -- Límite de drenado (Requiere HealthDrainOp) [default: 0.4]
 local LowHealthSpin = true --[[ El icono de BF y de DAD,
     gire cuando la salud está por debajo del límite de MinHealth
-    [Default: true]
+    [default: true]
     ]]
 
 
 -- | ScoreMini |
-local ScoreTxtMini = true -- Opción para que se vea el ScoreMini [default true]
+local ScoreTxtMini = true -- Opción para que se vea el ScoreMini [default: true]
 local TimeScoreMini = 0.2 --[[ El tiempo que tardará,
-    en llegar a la nueva puntuación [default 0.2]
+    en llegar a la nueva puntuación [default: 0.2]
     ]]
 local ColorScoreMini = '00FF00' --[[ El color que se volverá,
     el ScoreMini cuando se gana puntos
-    [default Hex 00FF00 (Verde)]
+    [default: Hex 00FF00 (Verde)]
     ]]
 
 
-local CamFlow = true -- Activa el CamFlow [default true]
+local CamFlow = true -- Activa el CamFlow [default: true]
 local FollowingMode = true --[[ Elige el tipo de desplazamiento que quieres usar:
     true = targetOffset
     false = camFollow
-    [default true]
+    [default: true]
     ]]
 local CameraSpeedOff = true --[[ Puedes desactivar el cameraSpeed en el script,
     Si ya tienes en otro script que ya hace lo mismo,
     Es para evitar problemas si otro script esta usando el cameraSpeed.
-    [default true]
+    [default: true]
     ]]
-local CameraSpeed = 1 -- Velocidad de la cámara (Requiere CameraSpeedOff = false) [default 1]
+local CameraSpeed = 1 -- Velocidad de la cámara (Requiere CameraSpeedOff = false) [default: 1]
 local CustomCam = false --[[ Personaliza la pocision de las cámaras:
     true = Cámaras personalizadas 
     false = Cámaras por defecto del Psych Engine
-    [default false]
+    [default: false]
     ]]
 
 
@@ -80,8 +98,8 @@ local camY_gf = 450
 
 
 -- | Offsets |
-local IndividualOffsets = false -- Es para si quieres usar los Offsets por individual [default false]
-local GeneralOffset = 20 -- Reemplaza a los offsets de dad,boyfriend y gf si el IndividualOffsets está en false (Requiere IndividualOffsets == false) [default 20]
+local IndividualOffsets = false -- Es para si quieres usar los Offsets por individual [default: false]
+local GeneralOffset = 20 -- Reemplaza a los offsets de dad,boyfriend y gf si el IndividualOffsets está en false (Requiere IndividualOffsets == false) [default: 20]
 
 -- | Offsets de las cámaras | (Requiere IndividualOffsets)
 -- Offset: Define hasta dónde puede desplazarse la cámara al seguir a los personajes.
@@ -103,6 +121,7 @@ local directionOffsets = {
     {1,0} -- Derecha [Note 7]
 }
 function onCreate()
+    setProperty('skipCountdown',SkipCountdown)
     setProperty('guitarHeroSustains',not HealthDrainOp)
     onCreateFunction()
 end
@@ -125,14 +144,14 @@ function onCreatePost()
 
     setProperty('iconP1.x',ScrollX + (Intro and 140 or 170))
     setProperty('iconP1.y',40 + ScrollY)
-    setProperty('iconP1.scale.x',Intro and 0.01 or 0.6)
-    setProperty('iconP1.scale.y',Intro and 0.01 or 0.6)
+    setProperty('iconP1.scale.x',Intro and 0.01 or IconScaleX)
+    setProperty('iconP1.scale.y',Intro and 0.01 or IconScaleY)
     setProperty('iconP1.alpha',Intro and 0 or 1)
 
     setProperty('iconP2.x',ScrollX + (Intro and 70 or 40))
     setProperty('iconP2.y',40 + ScrollY)
-    setProperty('iconP2.scale.x',Intro and 0.01 or 0.6)
-    setProperty('iconP2.scale.y',Intro and 0.01 or 0.6)
+    setProperty('iconP2.scale.x',Intro and 0.01 or IconScaleX)
+    setProperty('iconP2.scale.y',Intro and 0.01 or IconScaleY)
     setProperty('iconP2.alpha',Intro and 0 or 1)
 
     setProperty('scoreTxt.visible',ScoreTxtMini)
@@ -156,12 +175,13 @@ function onUpdate(elapsed)
         doTweenAngle('IconP2Angle','iconP2',getProperty('healthBar.percent') > 80 and 0 or 360,0.3)
     end
     if ColorBarVanilla then
-        setHealthBarColors('FF0000','00FF00')
         HealthBarColorFix = false
+        setHealthBarColors('FF0000','00FF00')
     end
     onUpdateFunction(elapsed)
 end
 function onUpdatePost(elapsed)
+    setProperty('camZooming',not DisableCameraZoom)
     onUpdatePostFunction(elapsed)
 end
 function onCountdownTick(counter)
@@ -176,7 +196,7 @@ function onCountdownTick(counter)
             doTweenX('timeBarScaleX','timeBar.scale',0.4,(bpm >= 180) and 1.5 or 2,'backInOut')
             for i = 1,2 do
                 doTweenAlpha('Icons'..i..'Alpha','iconP'..i,1,0.3,'backInOut')
-                startTween('Icons'..i..'Scale','iconP'..i..'.scale',{x = 0.6,y = 0.6},(bpm >= 180) and 0.3 or 0.5,{ease = 'backInOut'})
+                startTween('Icons'..i..'Scale','iconP'..i..'.scale',{x = IconScaleX,y = IconScaleY},(bpm >= 180) and 0.3 or 0.5,{ease = 'backInOut'})
             end
         elseif counter == 2 then
             for i = 1,2 do
@@ -195,20 +215,23 @@ function onCountdownTick(counter)
             end
         end
     end
-    onCountdownTickFunction(counter)
 end
 function onSongStart()
     onSongStartFunction()
 end
 function onBeatHit()
-    IconsScaleBeat(0.8,0.8)
     onBeatHitFunction()
 end
-
+function onPause()
+    if DisablePause then
+        return Function_Stop;
+    end
+end
 
 
 -- | Function list |
 function onCreateFunction()
+    Options()
 end
 function onCreatePostFunction()
     defaultCams() -- CamFlow
@@ -222,8 +245,6 @@ function onUpdatePostFunction(elapsed)
 end
 function onSongStartFunction()
 end
-function onCountdownTickFunction(counter)
-end
 function onBeatHitFunction()
     IconsScaleBeat() -- IconsScaleBeat
 end
@@ -232,14 +253,58 @@ function opponentNoteHit(membersIndex,noteData,noteType,isSustainNote)
 end
 
 
+
+
+
+local defaultSettings = {}
+
+function Options()
+    local settingsList = {
+        'downScroll','middleScroll','ghostTapping','hideHud',
+        'scoreZoom','flashing','lowQuality','shaders'
+    }
+    for _,setting in pairs(settingsList) do
+        defaultSettings[setting] = getPropertyFromClass('backend.ClientPrefs','data.'..setting)
+    end
+    if downscroll then
+        setPropertyFromClass('backend.ClientPrefs','data.downScroll',not DisableDownScroll)
+    end
+    if middlescroll then
+        setPropertyFromClass('backend.ClientPrefs','data.middleScroll',not DisableMiddleScroll)
+    end
+    if ghostTapping then
+        setPropertyFromClass('backend.ClientPrefs','data.ghostTapping',not DisableGhostTapping)
+    end
+    if hideHud then
+        setPropertyFromClass('backend.ClientPrefs','data.hideHud',not DisableHideHud)
+    end
+    if scoreZoom then
+        setPropertyFromClass('backend.ClientPrefs','data.scoreZoom',not DisableScoreZoom)
+    end
+    if flashingLights then
+        setPropertyFromClass('backend.ClientPrefs','data.flashing',not DisableFlashingLights)
+    end
+    if lowQuality then
+        setPropertyFromClass('backend.ClientPrefs','data.lowQuality',not DisableLowQuality)
+    end
+    if shadersEnabled then
+        setPropertyFromClass('backend.ClientPrefs','data.shaders',not DisableShadersEnabled)
+    end
+end
+function onDestroy()
+    for setting,value in pairs(defaultSettings) do
+        setPropertyFromClass("backend.ClientPrefs","data."..setting,value)
+    end
+end
+
+
+
 -- IconsScaleBeat
 function IconsScaleBeat()
-    local IconScaleX = IconScaleX or 0.7
-    local IconScaleY = IconScaleY or 0.7
     for i = 1,2 do
-        setProperty('iconP'..i..'.scale.x',IconScaleX)
-        setProperty('iconP'..i..'.scale.y',IconScaleY)
-        startTween('iconsTween'..i,'iconP'..i..'.scale',{x = 0.6,y = 0.6},0.5,{ease = 'bounceOut'})
+        setProperty('iconP'..i..'.scale.x',IconScaleBeatX)
+        setProperty('iconP'..i..'.scale.y',IconScaleBeatY)
+        startTween('iconsTween'..i,'iconP'..i..'.scale',{x = IconScaleX,y = IconScaleY},0.5,{ease = 'bounceOut'})
     end
 end
 
@@ -325,8 +390,8 @@ function onCamFlow()
             end
         end
         if FollowingMode then
-            FollowX = gfSection and camX_gf or (mustHitSection and camX_player or camX_opponent)
-            FollowY = gfSection and camY_gf or (mustHitSection and camY_player or camY_opponent)
+            local FollowX = gfSection and camX_gf or (mustHitSection and camX_player or camX_opponent)
+            local FollowY = gfSection and camY_gf or (mustHitSection and camY_player or camY_opponent)
             setProperty('camFollow.x',FollowX)
             setProperty('camFollow.y',FollowY)
         end
