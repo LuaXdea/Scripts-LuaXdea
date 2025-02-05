@@ -1,16 +1,16 @@
--- | HUD MINI FLOW [Alpha] | By LuaXdea |
+-- | HUD MINI FLOW v0.1 | By LuaXdea |
 -- [YouTube]: https://youtube.com/@lua-x-dea?si=NRm2RlRsL8BLxAl5
 
--- | Psych Engine |
--- • Temporarily only compatible with version 0.7.3
--- • Temporalmente sólo compatible con la versión 0.7.3
+-- | Psych Engine | Supported versions |
+-- • 0.7.2h • 0.7.3
+-- • 1.0.2h
 
 
 -- | Configuración |
 
 -- | General settings |
 local Intro = true -- La presentación [default true]
-local ColorBarVanilla = false -- Cambia el color de la barra de vida al FNF Base [default false]
+local ColorBarVanilla = false -- Cambia el color de la barra de vida al del Base Engine [default false]
 local HealthBarColorFix = true --[[ Si el color de la barra,
     de vida de DAD y BF son iguales o muy similares,
     se hará un ajuste en el color para que no sean iguales
@@ -18,16 +18,18 @@ local HealthBarColorFix = true --[[ Si el color de la barra,
     ]]
 
 
--- | UI Scroll |
+-- | UI settings |
 local ForceScroll = false -- Forzar el desplazamiento todo el UI [default false]
-local ScrollX = 0 -- Desplazamiento X [default 0]
-local ScrollY = 0 -- Desplazamiento Y [default 0]
+local ScrollX = 0 -- Desplazamiento X (Requiere ForceScroll) [default 0]
+local ScrollY = 0 -- Desplazamiento Y (Requiere ForceScroll) [default 0]
+local IconScaleX = 0.7 -- Por cada Beat hará un cambio en su scaleX [default 0.7]
+local IconScaleY = 0.7 -- Por cada Beat hará un cambio en su scaleY [default 0.7]
 
 
--- | HealthDrain |
+-- | Health |
 local HealthDrainOp = true -- El oponente te drena vida [default true]
-local Drain = 0.023 -- Drenado de vida [default 0.023]
-local MinHealth = 0.4 -- Límite de drenado [default 0.4]
+local Drain = 0.023 -- Drenado de vida (Requiere HealthDrainOp) [default 0.023]
+local MinHealth = 0.4 -- Límite de drenado (Requiere HealthDrainOp) [default 0.4]
 local LowHealthSpin = true --[[ El icono de BF y de DAD,
     gire cuando la salud está por debajo del límite de MinHealth
     [Default: true]
@@ -56,7 +58,7 @@ local CameraSpeedOff = true --[[ Puedes desactivar el cameraSpeed en el script,
     Es para evitar problemas si otro script esta usando el cameraSpeed.
     [default true]
     ]]
-local CameraSpeed = 1 -- Velocidad de la cámara (Requiere CameraSpeed) [default 1]
+local CameraSpeed = 1 -- Velocidad de la cámara (Requiere CameraSpeedOff = false) [default 1]
 local CustomCam = false --[[ Personaliza la pocision de las cámaras:
     true = Cámaras personalizadas 
     false = Cámaras por defecto del Psych Engine
@@ -65,6 +67,7 @@ local CustomCam = false --[[ Personaliza la pocision de las cámaras:
 
 
 -- | Posiciones de las cámaras | [Configurado para Test]
+-- (Requiere CustomCam)
 -- Esto solo funciona si CustomCam está en true
 -- camX: es la posición horizontal
 -- camY: es la posición vertical
@@ -78,7 +81,7 @@ local camY_gf = 450
 
 -- | Offsets |
 local IndividualOffsets = false -- Es para si quieres usar los Offsets por individual [default false]
-local GeneralOffset = 20 -- Reemplaza a los offsets de dad,boyfriend y gf si el IndividualOffsets está en false [default 20]
+local GeneralOffset = 20 -- Reemplaza a los offsets de dad,boyfriend y gf si el IndividualOffsets está en false (Requiere IndividualOffsets == false) [default 20]
 
 -- | Offsets de las cámaras | (Requiere IndividualOffsets)
 -- Offset: Define hasta dónde puede desplazarse la cámara al seguir a los personajes.
@@ -99,10 +102,11 @@ local directionOffsets = {
     {0,-1}, -- Arriba [Note 6]
     {1,0} -- Derecha [Note 7]
 }
-function create()
+function onCreate()
     setProperty('guitarHeroSustains',not HealthDrainOp)
+    onCreateFunction()
 end
-function createPost()
+function onCreatePost()
     runHaxeCode([[
     game.updateIconsPosition = function() {
         var iconOffset:Int = 26;
@@ -144,8 +148,9 @@ function createPost()
     setProperty('timeBar.alpha',Intro and 0 or 1)
 
     setProperty('timeTxt.visible',false)
+    onCreatePostFunction()
 end
-function update(elapsed)
+function onUpdate(elapsed)
     if LowHealthSpin then
         doTweenAngle('IconP1Angle','iconP1',getProperty('healthBar.percent') < 20 and 360 or 0,0.3)
         doTweenAngle('IconP2Angle','iconP2',getProperty('healthBar.percent') > 80 and 0 or 360,0.3)
@@ -154,8 +159,12 @@ function update(elapsed)
         setHealthBarColors('FF0000','00FF00')
         HealthBarColorFix = false
     end
+    onUpdateFunction(elapsed)
 end
-function countdownTick(counter)
+function onUpdatePost(elapsed)
+    onUpdatePostFunction(elapsed)
+end
+function onCountdownTick(counter)
     if Intro then
         if counter == 0 then
             startTween('healthBarScaleSet','healthBar.scale',{x = 0.05,y = 1},0.5,{ease = 'backInOut'})
@@ -186,46 +195,37 @@ function countdownTick(counter)
             end
         end
     end
-end
-function beatHit()
-    IconsScaleBeat(0.8,0.8)
-end
-
-
-
--- | Funciones |
-function onCreate()
-    create()
-    createFunctionGlobal()
-    callOnLuas('create')
-end
-function onCreatePost()
-    createPost()
-    callOnLuas('createPost')
-    defaultCams() -- CamFlow
-end
-function onUpdate(elapsed)
-    update(elapsed)
-    callOnLuas('update',{elapsed})
-end
-function onUpdatePost(elapsed)
-    updatePost(elapsed)
-    ScoreMiniPost(elapsed) -- ScoreMini
-    healthBarFix() -- healthBarFix
-    callOnLuas('updatePost',{elapsed})
-    onCamFlow() -- CamFlow
+    onCountdownTickFunction(counter)
 end
 function onSongStart()
-    songStart()
-    callOnLuas('songStart')
-end
-function onCountdownTick(counter)
-    countdownTick(counter)
-    callOnLuas('countdownTick',{counter})
+    onSongStartFunction()
 end
 function onBeatHit()
-    beatHit()
-    callOnLuas('beatHit')
+    IconsScaleBeat(0.8,0.8)
+    onBeatHitFunction()
+end
+
+
+
+-- | Function list |
+function onCreateFunction()
+end
+function onCreatePostFunction()
+    defaultCams() -- CamFlow
+end
+function onUpdateFunction(elapsed)
+end
+function onUpdatePostFunction(elapsed)
+    ScoreMiniPost(elapsed) -- ScoreMini
+    healthBarFix() -- healthBarFix
+    onCamFlow() -- CamFlow
+end
+function onSongStartFunction()
+end
+function onCountdownTickFunction(counter)
+end
+function onBeatHitFunction()
+    IconsScaleBeat() -- IconsScaleBeat
 end
 function opponentNoteHit(membersIndex,noteData,noteType,isSustainNote)
     HealthDrain()
@@ -233,8 +233,9 @@ end
 
 
 -- IconsScaleBeat
-function IconsScaleBeat(IconScaleX,IconScaleY)
-    local IconScaleX,IconScaleY = IconScaleX or 0.7,IconScaleY or 0.7
+function IconsScaleBeat()
+    local IconScaleX = IconScaleX or 0.7
+    local IconScaleY = IconScaleY or 0.7
     for i = 1,2 do
         setProperty('iconP'..i..'.scale.x',IconScaleX)
         setProperty('iconP'..i..'.scale.y',IconScaleY)
@@ -244,15 +245,18 @@ end
 
 -- Reemplazo de saveFile [saveFileLua]
 function saveFileLua(filePath,content,absolute)
+    local absolute = absolute or false
     runHaxeCode([[
         var path = "]]..filePath..[[";
-        var isAbsolute = ]]..tostring(absolute)..[[ ?? false;
-        if (!isAbsolute) path = Paths.mods(path);
-        if (!FileSystem.exists(path.substr(0,path.lastIndexOf("/")))) 
-            FileSystem.createDirectory(path.substr(0,path.lastIndexOf("/")));
-        File.saveContent(path,"]]..content..[[");
+        if (!]]..tostring(absolute)..[[) path = Paths.mods(path);
+        if (!FileSystem.exists(path)) {
+            var dir = path.substr(0,path.lastIndexOf("/"));
+            if (!FileSystem.exists(dir)) FileSystem.createDirectory(dir);
+            File.saveContent(path,"]]..content..[[");
+        }
     ]])
 end
+
 
 -- HealthDrain
 function HealthDrain()
