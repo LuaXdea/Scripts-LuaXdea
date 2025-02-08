@@ -1,4 +1,4 @@
--- | HUD MINI FLOW v0.8 [Fix] Test | By LuaXdea |
+-- | HUD MINI FLOW v0.9 Test | By LuaXdea |
 -- [YouTube]: https://youtube.com/@lua-x-dea?si=NRm2RlRsL8BLxAl5
 
 -- | Psych Engine | Supported versions |
@@ -32,19 +32,26 @@ local DisableCameraZoom = false --[[ Desactiva el zoom de la cámara,
     ]]
 local SkipCountdown = false -- Omite la cuenta regresiva del inicio de la canción [default: false]
 local DisablePause = false -- Impide que el jugador pueda pausar el juego [default: false]
+local DisablePractice = false -- Evita que el jugador use practice [default: false]
+local DisableBotPlay = false -- Evita que el jugador use botplay [default: false]
 
 
 -- | UI settings |
+local UiGroupCam = 'camHUD' -- Cámara para uiGroup [default: camHUD]
+local ComboGroupCam = 'camHUD' -- Cámara para comboGroup [default: camHUD]
 local ForceScroll = false -- Forzar el desplazamiento todo el UI [default: false]
 local ScrollX = 0 -- Desplazamiento X (Requiere ForceScroll) [default: 0]
 local ScrollY = 0 -- Desplazamiento Y (Requiere ForceScroll) [default: 0]
-local IconScaleX = 0.8 -- EscalaX base de los iconos [default: 0.8]
-local IconScaleY = 0.8 -- EscalaY base de los iconos [default: 0.8]
+local IconScaleX = 0.7 -- EscalaX base de los iconos [default: 0.7]
+local IconScaleY = 0.7 -- EscalaY base de los iconos [default: 0.7]
 local IconsArrows = true -- Los iconos se moverán con cada nota [default: true]
 local IconMove = 7 -- Intensidad de movimiento (Requiere IconsArrows) [default: 7]
 local IconsScaleBeatOn = true -- Activa el IconsScaleBeat
-local IconScaleBeatX = 0.9 -- Por cada Beat hará un cambio en su escalaX [default: 0.9]
-local IconScaleBeatY = 0.9 -- Por cada Beat hará un cambio en su escalaY [default: 0.9]
+local IconScaleBeatX = 0.8 -- Por cada Beat hará un cambio en su escalaX [default: 0.8]
+local IconScaleBeatY = 0.8 -- Por cada Beat hará un cambio en su escalaY [default: 0.8]
+local ShowCombo = false -- Combo [default: false]
+local ShowComboNum = true -- Combo de números [default: true]
+local ShowRating = true -- Clasificaciones [default: true]
 
 
 -- | Health |
@@ -129,10 +136,21 @@ local directionOffsets = {
 function onCreate()
     setProperty('skipCountdown',SkipCountdown)
     setProperty('guitarHeroSustains',not HealthDrainOp)
+    if getProperty('practiceMode') then
+        setProperty('practiceMode',not DisablePractice)
+    end
+    if getProperty('cpuControlled') then
+        setProperty('cpuControlled',not DisableBotPlay)
+    end
+    setProperty('showCombo',ShowCombo)
+    setProperty('showComboNum',ShowComboNum)
+    setProperty('showRating',ShowRating)
     Options()
 end
 function UIsetting()
     local ScrollY = not ForceScroll and (downscroll and 0 or 590) or ScrollY
+    setProperty('camGame.alpha',0)
+    setProperty('camHUD.alpha',0)
     setProperty('healthBar.bg.visible',false)
     setProperty('healthBar.x',-150 + ScrollX)
     setProperty('healthBar.y',15 + ScrollY)
@@ -140,13 +158,13 @@ function UIsetting()
     setProperty('healthBar.scale.y',Intro and 0.01 or 1)
     setProperty('healthBar.alpha',Intro and 0 or 1)
 
-    setProperty('iconBF.x',ScrollX + (Intro and 60 or 90))
+    setProperty('iconBF.x',ScrollX + (Intro and 105 or 145))
     setProperty('iconBF.y',30 + ScrollY)
     setProperty('iconBF.scale.x',Intro and 0.01 or IconScaleX)
     setProperty('iconBF.scale.y',Intro and 0.01 or IconScaleY)
     setProperty('iconBF.alpha',Intro and 0 or 1)
 
-    setProperty('iconDad.x',ScrollX + (Intro and -10 or -40))
+    setProperty('iconDad.x',ScrollX + (Intro and 50 or 20))
     setProperty('iconDad.y',30 + ScrollY)
     setProperty('iconDad.scale.x',Intro and 0.01 or IconScaleX)
     setProperty('iconDad.scale.y',Intro and 0.01 or IconScaleY)
@@ -218,18 +236,13 @@ function onBeatHit()
     IconsScaleBeat() -- IconsScaleBeat
 end
 function onPause()
-    if DisablePause then
-        return Function_Stop;
-    end
+    if DisablePause then return Function_Stop; end
 end
 function onCreatePost()
-    onCreatePostAlt()
+    IconMaker() -- IconMaker
     UIsetting() -- UIsetting
     defaults() -- defaults
     defaultCams() -- CamFlow
-end
-function onCreatePostAlt()
-    IconMaker() -- IconMaker
 end
 function onUpdateFunction(elapsed)
     HealthBarLow() -- HealthBarLow
@@ -294,22 +307,26 @@ function Options()
 end
 function onDestroy()
     for setting,value in pairs(defaultSettings) do
-        setPropertyFromClass("backend.ClientPrefs","data."..setting,value)
+        setPropertyFromClass('backend.ClientPrefs','data.'..setting,value)
     end
 end
 
 
 -- IconMaker
+-- Nota: El jodido "callMethod" no funcionaba bien con el "HealthIcon", así que mejor use "runHaxeCode"
 function IconMaker()
-    addHaxeLibrary('HealthIcon','objects')
     runHaxeCode([[
-        var iconBF = new HealthIcon(boyfriend.healthIcon,true);
+        var iconBF = new HealthIcon(boyfriend.healthIcon,true); // Reemplazo de iconP1
         game.variables.set('iconBF',iconBF);
         game.add(iconBF);
-        var iconDad = new HealthIcon(dad.healthIcon,false);
+        game.uiGroup.add(iconBF);
+        var iconDad = new HealthIcon(dad.healthIcon,false); // Reemplazo de iconP2
         game.variables.set('iconDad',iconDad);
         game.add(iconDad);
+        game.uiGroup.add(iconDad);
     ]])
+    setObjectCamera('uiGroup',UiGroupCam)
+    setObjectCamera('comboGroup',ComboGroupCam)
 end
 function IconsAnimations()
     setProperty('iconP1.visible',false)
@@ -344,7 +361,6 @@ function IconsScaleBeat()
         end
     end
 end
-
 
 
 -- defaults
@@ -404,7 +420,6 @@ function HealthBarLow()
 end
 
 
-
 -- Reemplazo de saveFile [saveFileLua]
 function saveFileLua(filePath,content,absolute)
     local absolute = absolute or false
@@ -419,12 +434,14 @@ function saveFileLua(filePath,content,absolute)
     ]])
 end
 
+
 -- HealthDrain
 function HealthDrain()
     if HealthDrainOp and getHealth() >= MinHealth then
         setHealth(getHealth() - Drain)
     end
 end
+
 
 -- ScoreMini
 local ScoreActual = getProperty('songScore')
@@ -462,6 +479,7 @@ function ScoreMiniPost(elapsed)
     end
 end
 
+
 -- CamFlow
 function defaultCams()
     if not CustomCam then
@@ -497,6 +515,7 @@ function onCamFlow()
     end
 end
 
+
 -- healthBarFix
 function healthBarFix()
     if HealthBarColorFix then
@@ -517,6 +536,7 @@ function adjustColor(r,g,b,lum)
     local adj = (lum > 128) and -60 or 60
     return { math.max(0,math.min(255,r + adj)),math.max(0,math.min(255,g + adj)),math.max(0,math.min(255,b + adj)) }
 end
+
 
 -- ColorHex
 function rgbToHex(r,g,b)
