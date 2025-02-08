@@ -1,4 +1,4 @@
--- | HUD MINI FLOW v0.7 Test | By LuaXdea |
+-- | HUD MINI FLOW v0.8 [Fix] Test | By LuaXdea |
 -- [YouTube]: https://youtube.com/@lua-x-dea?si=NRm2RlRsL8BLxAl5
 
 -- | Psych Engine | Supported versions |
@@ -38,18 +38,18 @@ local DisablePause = false -- Impide que el jugador pueda pausar el juego [defau
 local ForceScroll = false -- Forzar el desplazamiento todo el UI [default: false]
 local ScrollX = 0 -- Desplazamiento X (Requiere ForceScroll) [default: 0]
 local ScrollY = 0 -- Desplazamiento Y (Requiere ForceScroll) [default: 0]
-local IconScaleX = 0.7 -- EscalaX base de los iconos [default: 0.7]
-local IconScaleY = 0.7 -- EscalaY base de los iconos [default: 0.7]
+local IconScaleX = 0.8 -- EscalaX base de los iconos [default: 0.8]
+local IconScaleY = 0.8 -- EscalaY base de los iconos [default: 0.8]
 local IconsArrows = true -- Los iconos se moverán con cada nota [default: true]
 local IconMove = 7 -- Intensidad de movimiento (Requiere IconsArrows) [default: 7]
 local IconsScaleBeatOn = true -- Activa el IconsScaleBeat
-local IconScaleBeatX = 0.8 -- Por cada Beat hará un cambio en su escalaX [default: 0.8]
-local IconScaleBeatY = 0.8 -- Por cada Beat hará un cambio en su escalaY [default: 0.8]
+local IconScaleBeatX = 0.9 -- Por cada Beat hará un cambio en su escalaX [default: 0.9]
+local IconScaleBeatY = 0.9 -- Por cada Beat hará un cambio en su escalaY [default: 0.9]
 
 
 -- | Health |
 local HealthDrainOp = true -- El oponente te drena vida [default: true]
-local Drain = 0.023 -- Drenado de vida (Requiere HealthDrainOp) [default: 0.023]
+local Drain = 0.02 -- Drenado de vida (Requiere HealthDrainOp) [default: 0.02]
 local MinHealth = 0.4 -- Límite de drenado (Requiere HealthDrainOp) [default: 0.4]
 local LowHealthSpin = true --[[ El icono de BF y de DAD,
     gire cuando la salud está por debajo del límite de MinHealth
@@ -58,8 +58,6 @@ local LowHealthSpin = true --[[ El icono de BF y de DAD,
 local HealthBarLow = true --[[ La barra de vida parpadea,
     cuando BF o Dad están a poca vida [default: true]
     ]]
-local RightBarBFColor = 'FF0000' -- Color de parpadeo BF [default: Hex FF0000 (Rojo)]
-local LeftBarDadColor = 'FF0000' -- Color de parpadeo Dad [default: Hex FF0000 (Rojo)]
 
 
 -- | ScoreMini |
@@ -100,7 +98,7 @@ local CustomCam = false --[[ Personaliza la pocision de las cámaras:
 local camX_opponent = 600
 local camY_opponent = 600
 local camX_player = 700
-local camY,_player = 600
+local camY_player = 600
 local camX_gf = 650
 local camY_gf = 450
 
@@ -142,14 +140,14 @@ function UIsetting()
     setProperty('healthBar.scale.y',Intro and 0.01 or 1)
     setProperty('healthBar.alpha',Intro and 0 or 1)
 
-    setProperty('iconBF.x',ScrollX + (Intro and 110 or 160))
-    setProperty('iconBF.y',40 + ScrollY)
+    setProperty('iconBF.x',ScrollX + (Intro and 60 or 90))
+    setProperty('iconBF.y',30 + ScrollY)
     setProperty('iconBF.scale.x',Intro and 0.01 or IconScaleX)
     setProperty('iconBF.scale.y',Intro and 0.01 or IconScaleY)
     setProperty('iconBF.alpha',Intro and 0 or 1)
 
-    setProperty('iconDad.x',ScrollX + (Intro and 50 or 20))
-    setProperty('iconDad.y',40 + ScrollY)
+    setProperty('iconDad.x',ScrollX + (Intro and -10 or -40))
+    setProperty('iconDad.y',30 + ScrollY)
     setProperty('iconDad.scale.x',Intro and 0.01 or IconScaleX)
     setProperty('iconDad.scale.y',Intro and 0.01 or IconScaleY)
     setProperty('iconDad.alpha',Intro and 0 or 1)
@@ -169,7 +167,7 @@ function UIsetting()
     setProperty('timeTxt.visible',false)
 end
 function onUpdate(elapsed)
-    if LowHealthSpin then
+    if LowHealthSpin and curStep > 0 then
         doTweenAngle('IconBFAngle','iconBF',getProperty('healthBar.percent') < 20 and iconBFAngleDefault + 360 or iconBFAngleDefault,0.3)
         doTweenAngle('IconDadAngle','iconDad',getProperty('healthBar.percent') > 80 and iconDadAngleDefault + 360 or iconDadAngleDefault,0.3)
     end
@@ -215,6 +213,7 @@ function onCountdownTick(counter)
         end
     end
 end
+-- | Function list |
 function onBeatHit()
     IconsScaleBeat() -- IconsScaleBeat
 end
@@ -223,18 +222,18 @@ function onPause()
         return Function_Stop;
     end
 end
-
-
--- | Function list |
 function onCreatePost()
-    IconMaker()
-    UIsetting()
-    defaults()
+    onCreatePostAlt()
+    UIsetting() -- UIsetting
+    defaults() -- defaults
     defaultCams() -- CamFlow
 end
+function onCreatePostAlt()
+    IconMaker() -- IconMaker
+end
 function onUpdateFunction(elapsed)
-    HealthBarLow()
-    IconsAnimations()
+    HealthBarLow() -- HealthBarLow
+    IconsAnimations() -- IconsAnimations
 end
 function onUpdatePostFunction(elapsed)
     ScoreMiniPost(elapsed) -- ScoreMini
@@ -242,14 +241,17 @@ function onUpdatePostFunction(elapsed)
     onCamFlow() -- CamFlow
 end
 function goodNoteHit(membersIndex,noteData,noteType,isSustainNote)
-    IconBFArrows(noteData)
+    IconBFArrows(noteData) -- IconsArrows
 end
 function opponentNoteHit(membersIndex,noteData,noteType,isSustainNote)
-    IconDadArrows(noteData)
+    IconDadArrows(noteData) -- IconsArrows
     HealthDrain()
 end
 function onTimerCompleted(tag,loops,loopsLeft)
-    IconsReturn(tag)
+    IconsReturn(tag) -- IconsArrows
+end
+function onEvent(eventName,value1,value2,strumTime)
+    IconMakerRefresh(eventName,value1)
 end
 
 
@@ -299,29 +301,36 @@ end
 
 -- IconMaker
 function IconMaker()
-local IconDadName = 'icons/'..(checkFileExists('images/icons/'..getProperty('dad.healthIcon')..'.png') and getProperty('dad.healthIcon') or 'icon-'..getProperty('dad.healthIcon'))
-local IconBFName = 'icons/'..(checkFileExists('images/icons/'..getProperty('boyfriend.healthIcon')..'.png') and getProperty('boyfriend.healthIcon') or 'icon-'..getProperty('boyfriend.healthIcon'))
-
-    makeLuaSprite('iconDad',nil)
-    loadGraphic('iconDad',IconDadName,150,150)
-    addAnimation('iconDad','Normal',{0})
-    addAnimation('iconDad','Low',{1})
-    setObjectCamera('iconDad','camHUD')
-    addLuaSprite('iconDad',true)
-
-    makeLuaSprite('iconBF',nil)
-    loadGraphic('iconBF',IconBFName,150,150)
-    addAnimation('iconBF','Normal',{0})
-    addAnimation('iconBF','Low',{1})
-    setProperty('iconBF.flipX',true)
-    setObjectCamera('iconBF','camHUD')
-    addLuaSprite('iconBF',true)
+    addHaxeLibrary('HealthIcon','objects')
+    runHaxeCode([[
+        var iconBF = new HealthIcon(boyfriend.healthIcon,true);
+        game.variables.set('iconBF',iconBF);
+        game.add(iconBF);
+        var iconDad = new HealthIcon(dad.healthIcon,false);
+        game.variables.set('iconDad',iconDad);
+        game.add(iconDad);
+    ]])
 end
 function IconsAnimations()
     setProperty('iconP1.visible',false)
     setProperty('iconP2.visible',false)
-    playAnim('iconDad',getProperty('healthBar.percent') > 80 and 'Low' or 'Normal')
-    playAnim('iconBF',getProperty('healthBar.percent') < 20 and 'Low' or 'Normal')
+    setProperty('iconBF.animation.curAnim.curFrame',getProperty('healthBar.percent') < 20 and 1 or 0)
+    setProperty('iconDad.animation.curAnim.curFrame',getProperty('healthBar.percent') > 80 and 1 or 0)
+end
+function IconMakerRefresh(n,v1)
+    if n == 'Change Character' then
+        if string.lower(v1) == 'dad' or string.lower(v1) == 'opponent' then
+            runHaxeCode([[
+                var iconDad = game.variables.get('iconDad');
+                iconDad.changeIcon(dad.healthIcon);
+            ]])
+        else
+            runHaxeCode([[
+                var iconBF = game.variables.get('iconBF');
+                iconBF.changeIcon(boyfriend.healthIcon);
+            ]])
+        end
+    end
 end
 
 
@@ -385,14 +394,15 @@ end
 
 -- HealthBarLow
 function HealthBarLow()
-    local hp,stepMod = getProperty('healthBar.percent'),curStep % 6
-    local bfColor = hp < 20 and (stepMod == 0 and RightBarBFColor or rgbToHex(bfRGB[1],bfRGB[2],bfRGB[3])) or rgbToHex(bfRGB[1],bfRGB[2],bfRGB[3])
-    local dadColor = hp > 80 and (stepMod == 0 and LeftBarDadColor or rgbToHex(dadRGB[1],dadRGB[2],dadRGB[3])) or rgbToHex(dadRGB[1],dadRGB[2],dadRGB[3])
+    local hp,stepMod = getProperty('healthBar.percent'), curStep % 6
+    local bfAlpha = hp < 20 and (stepMod == 0 and 1 or 0.2) or 1
+    local dadAlpha = hp > 80 and (stepMod == 0 and 1 or 0.2) or 1
     if HealthBarLow then
-        doTweenColor('healthBarBF','healthBar.rightBar',bfColor,hp < 20 and 0.15 or 0.5)
-        doTweenColor('healthBarDad','healthBar.leftBar',dadColor,0.15)
+        doTweenAlpha('healthBarBF', 'healthBar.rightBar',bfAlpha,hp < 20 and 0.15 or 0.5)
+        doTweenAlpha('healthBarDad', 'healthBar.leftBar',dadAlpha,0.15)
     end
 end
+
 
 
 -- Reemplazo de saveFile [saveFileLua]
