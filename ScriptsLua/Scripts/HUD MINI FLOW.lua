@@ -1,4 +1,4 @@
--- | HUD MINI FLOW v0.2 Test | By LuaXdea |
+-- | HUD MINI FLOW v0.7 Test | By LuaXdea |
 -- [YouTube]: https://youtube.com/@lua-x-dea?si=NRm2RlRsL8BLxAl5
 
 -- | Psych Engine | Supported versions |
@@ -27,7 +27,7 @@ local DisableFlashingLights = false -- Evita que el jugador active el FlashingLi
 local DisableLowQuality = false -- Evita que el jugador active el LowQuality [default: false]
 local DisableShadersEnabled = false -- Evita que el jugador active los shaders [default: false]
 local DisableCameraZoom = false --[[ Desactiva el zoom de la cámara,
-    incluyendo el evento "Add Camera Zoom" 
+    incluyendo el evento "Add Camera Zoom" ya no funcionara correctamente
     [default: false]
     ]]
 local SkipCountdown = false -- Omite la cuenta regresiva del inicio de la canción [default: false]
@@ -38,10 +38,13 @@ local DisablePause = false -- Impide que el jugador pueda pausar el juego [defau
 local ForceScroll = false -- Forzar el desplazamiento todo el UI [default: false]
 local ScrollX = 0 -- Desplazamiento X (Requiere ForceScroll) [default: 0]
 local ScrollY = 0 -- Desplazamiento Y (Requiere ForceScroll) [default: 0]
-local IconScaleX = 0.6 -- EscalaX base de los iconos [default: 0.6]
-local IconScaleY = 0.6 -- EscalaY base de los iconos [default: 0.6]
-local IconScaleBeatX = 0.7 -- Por cada Beat hará un cambio en su escalaX [default: 0.7]
-local IconScaleBeatY = 0.7 -- Por cada Beat hará un cambio en su escalaY [default: 0.7]
+local IconScaleX = 0.7 -- EscalaX base de los iconos [default: 0.7]
+local IconScaleY = 0.7 -- EscalaY base de los iconos [default: 0.7]
+local IconsArrows = true -- Los iconos se moverán con cada nota [default: true]
+local IconMove = 7 -- Intensidad de movimiento (Requiere IconsArrows) [default: 7]
+local IconsScaleBeatOn = true -- Activa el IconsScaleBeat
+local IconScaleBeatX = 0.8 -- Por cada Beat hará un cambio en su escalaX [default: 0.8]
+local IconScaleBeatY = 0.8 -- Por cada Beat hará un cambio en su escalaY [default: 0.8]
 
 
 -- | Health |
@@ -52,6 +55,11 @@ local LowHealthSpin = true --[[ El icono de BF y de DAD,
     gire cuando la salud está por debajo del límite de MinHealth
     [default: true]
     ]]
+local HealthBarLow = true --[[ La barra de vida parpadea,
+    cuando BF o Dad están a poca vida [default: true]
+    ]]
+local RightBarBFColor = 'FF0000' -- Color de parpadeo BF [default: Hex FF0000 (Rojo)]
+local LeftBarDadColor = 'FF0000' -- Color de parpadeo Dad [default: Hex FF0000 (Rojo)]
 
 
 -- | ScoreMini |
@@ -92,14 +100,14 @@ local CustomCam = false --[[ Personaliza la pocision de las cámaras:
 local camX_opponent = 600
 local camY_opponent = 600
 local camX_player = 700
-local camY_player = 600
+local camY,_player = 600
 local camX_gf = 650
 local camY_gf = 450
 
 
 -- | Offsets |
 local IndividualOffsets = false -- Es para si quieres usar los Offsets por individual [default: false]
-local GeneralOffset = 20 -- Reemplaza a los offsets de dad,boyfriend y gf si el IndividualOffsets está en false (Requiere IndividualOffsets == false) [default: 20]
+local GeneralOffset = 25 -- Reemplaza a los offsets de dad,boyfriend y gf si el IndividualOffsets está en false (Requiere IndividualOffsets == false) [default: 25]
 
 -- | Offsets de las cámaras | (Requiere IndividualOffsets)
 -- Offset: Define hasta dónde puede desplazarse la cámara al seguir a los personajes.
@@ -123,17 +131,9 @@ local directionOffsets = {
 function onCreate()
     setProperty('skipCountdown',SkipCountdown)
     setProperty('guitarHeroSustains',not HealthDrainOp)
-    onCreateFunction()
+    Options()
 end
-function onCreatePost()
-    runHaxeCode([[
-    game.updateIconsPosition = function() {
-        var iconOffset:Int = 26;
-        game.iconP1.offset.set(iconOffset,iconOffset);
-        game.iconP2.offset.set(iconOffset,iconOffset);
-    };
-    game.updateIconsScale = function(elapsed:Float) {};
-    ]])
+function UIsetting()
     local ScrollY = not ForceScroll and (downscroll and 0 or 590) or ScrollY
     setProperty('healthBar.bg.visible',false)
     setProperty('healthBar.x',-150 + ScrollX)
@@ -142,17 +142,17 @@ function onCreatePost()
     setProperty('healthBar.scale.y',Intro and 0.01 or 1)
     setProperty('healthBar.alpha',Intro and 0 or 1)
 
-    setProperty('iconP1.x',ScrollX + (Intro and 140 or 170))
-    setProperty('iconP1.y',40 + ScrollY)
-    setProperty('iconP1.scale.x',Intro and 0.01 or IconScaleX)
-    setProperty('iconP1.scale.y',Intro and 0.01 or IconScaleY)
-    setProperty('iconP1.alpha',Intro and 0 or 1)
+    setProperty('iconBF.x',ScrollX + (Intro and 110 or 160))
+    setProperty('iconBF.y',40 + ScrollY)
+    setProperty('iconBF.scale.x',Intro and 0.01 or IconScaleX)
+    setProperty('iconBF.scale.y',Intro and 0.01 or IconScaleY)
+    setProperty('iconBF.alpha',Intro and 0 or 1)
 
-    setProperty('iconP2.x',ScrollX + (Intro and 70 or 40))
-    setProperty('iconP2.y',40 + ScrollY)
-    setProperty('iconP2.scale.x',Intro and 0.01 or IconScaleX)
-    setProperty('iconP2.scale.y',Intro and 0.01 or IconScaleY)
-    setProperty('iconP2.alpha',Intro and 0 or 1)
+    setProperty('iconDad.x',ScrollX + (Intro and 50 or 20))
+    setProperty('iconDad.y',40 + ScrollY)
+    setProperty('iconDad.scale.x',Intro and 0.01 or IconScaleX)
+    setProperty('iconDad.scale.y',Intro and 0.01 or IconScaleY)
+    setProperty('iconDad.alpha',Intro and 0 or 1)
 
     setProperty('scoreTxt.visible',ScoreTxtMini)
     setProperty('scoreTxt.alpha',Intro and 0 or 1)
@@ -167,12 +167,11 @@ function onCreatePost()
     setProperty('timeBar.alpha',Intro and 0 or 1)
 
     setProperty('timeTxt.visible',false)
-    onCreatePostFunction()
 end
 function onUpdate(elapsed)
     if LowHealthSpin then
-        doTweenAngle('IconP1Angle','iconP1',getProperty('healthBar.percent') < 20 and 360 or 0,0.3)
-        doTweenAngle('IconP2Angle','iconP2',getProperty('healthBar.percent') > 80 and 0 or 360,0.3)
+        doTweenAngle('IconBFAngle','iconBF',getProperty('healthBar.percent') < 20 and iconBFAngleDefault + 360 or iconBFAngleDefault,0.3)
+        doTweenAngle('IconDadAngle','iconDad',getProperty('healthBar.percent') > 80 and iconDadAngleDefault + 360 or iconDadAngleDefault,0.3)
     end
     if ColorBarVanilla then
         HealthBarColorFix = false
@@ -186,41 +185,38 @@ function onUpdatePost(elapsed)
 end
 function onCountdownTick(counter)
     if Intro then
-        if counter == 0 then
-            startTween('healthBarScaleSet','healthBar.scale',{x = 0.05,y = 1},0.5,{ease = 'backInOut'})
-            doTweenAlpha('healthBarAlpha','healthBar',1,0.5,'backInOut')
-            startTween('timeBarScaleSet','timeBar.scale',{x = 0.05,y = 1},0.5,{ease = 'backInOut'})
-            doTweenAlpha('timeBarAlpha','timeBar',1,0.5,'backInOut')
-        elseif counter == 1 then
-            doTweenX('healthBarScaleX','healthBar.scale',0.4,(bpm >= 180) and 1.5 or 2,'backInOut')
-            doTweenX('timeBarScaleX','timeBar.scale',0.4,(bpm >= 180) and 1.5 or 2,'backInOut')
-            for i = 1,2 do
-                doTweenAlpha('Icons'..i..'Alpha','iconP'..i,1,0.3,'backInOut')
-                startTween('Icons'..i..'Scale','iconP'..i..'.scale',{x = IconScaleX,y = IconScaleY},(bpm >= 180) and 0.3 or 0.5,{ease = 'backInOut'})
-            end
-        elseif counter == 2 then
-            for i = 1,2 do
-                doTweenX('Icons'..i..'X','iconP'..i,(i == 2) and getProperty('iconP2.x') - 30 or getProperty('iconP1.x') + 30,(bpm >= 180) and 1 or 1.5,'backInOut')
-                doTweenX('Icons'..i..'ScaleX','iconP'..i..'.scale',0.9,1)
-            end
-        elseif counter == 3 then
-            for i = 1,2 do
-                doTweenX('Icons'..i..'ScaleX','iconP'..i..'.scale',0.6,0.5,'bounceOut')
-            end
-        elseif counter == 4 then
-            if ScoreTxtMini and not getProperty('cpuControlled') then
-                doTweenAlpha('ScoreMiniAlpha','scoreTxt',1,0.5)
-            else
-                setProperty('scoreTxt.visible',false)
+        for _,i in pairs({'iconBF','iconDad'}) do
+            if counter == 0 then
+                startTween('healthBarScaleSet','healthBar.scale',{x = 0.05,y = 1},0.5,{ease = 'backInOut'})
+                doTweenAlpha('healthBarAlpha','healthBar',1,0.5,'backInOut')
+                startTween('timeBarScaleSet','timeBar.scale',{x = 0.05,y = 1},0.5,{ease = 'backInOut'})
+                doTweenAlpha('timeBarAlpha','timeBar',1,0.5,'backInOut')
+            elseif counter == 1 then
+                doTweenX('healthBarScaleX','healthBar.scale',0.4,(bpm >= 180) and 1.5 or 2,'backInOut')
+                doTweenX('timeBarScaleX','timeBar.scale',0.4,(bpm >= 180) and 1.5 or 2,'backInOut')
+                doTweenAlpha(i..'Alpha',i,1,0.3,'backInOut')
+                startTween(i..'Scale',i..'.scale',{x = IconScaleX,y = IconScaleY},(bpm >= 180) and 0.3 or 0.5,{ease = 'backInOut'})
+            elseif counter == 2 then
+                iconBFXDefault = getProperty('iconBF.x') + 30
+                iconBFYDefault = getProperty('iconBF.y')
+                iconDadXDefault = getProperty('iconDad.x') - 30
+                iconDadYDefault = getProperty('iconDad.y')
+                doTweenX(i..'X',i,(i == 'iconDad') and getProperty('iconDad.x') - 30 or getProperty('iconBF.x') + 30,(bpm >= 180) and 1 or 1.5,'backInOut')
+                doTweenX(i..'ScaleX',i..'.scale',0.9,1)
+            elseif counter == 3 then
+                doTweenX(i..'ScaleX',i..'.scale',IconScaleX,0.5,'bounceOut')
+            elseif counter == 4 then
+                if ScoreTxtMini and not getProperty('cpuControlled') then
+                    doTweenAlpha('ScoreMiniAlpha','scoreTxt',1,0.5)
+                else
+                    setProperty('scoreTxt.visible',false)
+                end
             end
         end
     end
 end
-function onSongStart()
-    onSongStartFunction()
-end
 function onBeatHit()
-    onBeatHitFunction()
+    IconsScaleBeat() -- IconsScaleBeat
 end
 function onPause()
     if DisablePause then
@@ -230,28 +226,31 @@ end
 
 
 -- | Function list |
-function onCreateFunction()
-    Options()
-end
-function onCreatePostFunction()
+function onCreatePost()
+    IconMaker()
+    UIsetting()
+    defaults()
     defaultCams() -- CamFlow
 end
 function onUpdateFunction(elapsed)
+    HealthBarLow()
+    IconsAnimations()
 end
 function onUpdatePostFunction(elapsed)
     ScoreMiniPost(elapsed) -- ScoreMini
     healthBarFix() -- healthBarFix
     onCamFlow() -- CamFlow
 end
-function onSongStartFunction()
-end
-function onBeatHitFunction()
-    IconsScaleBeat() -- IconsScaleBeat
+function goodNoteHit(membersIndex,noteData,noteType,isSustainNote)
+    IconBFArrows(noteData)
 end
 function opponentNoteHit(membersIndex,noteData,noteType,isSustainNote)
+    IconDadArrows(noteData)
     HealthDrain()
 end
-
+function onTimerCompleted(tag,loops,loopsLeft)
+    IconsReturn(tag)
+end
 
 
 
@@ -298,15 +297,103 @@ function onDestroy()
 end
 
 
+-- IconMaker
+function IconMaker()
+local IconDadName = 'icons/'..(checkFileExists('images/icons/'..getProperty('dad.healthIcon')..'.png') and getProperty('dad.healthIcon') or 'icon-'..getProperty('dad.healthIcon'))
+local IconBFName = 'icons/'..(checkFileExists('images/icons/'..getProperty('boyfriend.healthIcon')..'.png') and getProperty('boyfriend.healthIcon') or 'icon-'..getProperty('boyfriend.healthIcon'))
+
+    makeLuaSprite('iconDad',nil)
+    loadGraphic('iconDad',IconDadName,150,150)
+    addAnimation('iconDad','Normal',{0})
+    addAnimation('iconDad','Low',{1})
+    setObjectCamera('iconDad','camHUD')
+    addLuaSprite('iconDad',true)
+
+    makeLuaSprite('iconBF',nil)
+    loadGraphic('iconBF',IconBFName,150,150)
+    addAnimation('iconBF','Normal',{0})
+    addAnimation('iconBF','Low',{1})
+    setProperty('iconBF.flipX',true)
+    setObjectCamera('iconBF','camHUD')
+    addLuaSprite('iconBF',true)
+end
+function IconsAnimations()
+    setProperty('iconP1.visible',false)
+    setProperty('iconP2.visible',false)
+    playAnim('iconDad',getProperty('healthBar.percent') > 80 and 'Low' or 'Normal')
+    playAnim('iconBF',getProperty('healthBar.percent') < 20 and 'Low' or 'Normal')
+end
+
 
 -- IconsScaleBeat
 function IconsScaleBeat()
-    for i = 1,2 do
-        setProperty('iconP'..i..'.scale.x',IconScaleBeatX)
-        setProperty('iconP'..i..'.scale.y',IconScaleBeatY)
-        startTween('iconsTween'..i,'iconP'..i..'.scale',{x = IconScaleX,y = IconScaleY},0.5,{ease = 'bounceOut'})
+    if IconsScaleBeatOn then
+        for _,i in pairs({'iconBF','iconDad'}) do
+            setProperty(i..'.scale.x',IconScaleBeatX)
+            setProperty(i..'.scale.y',IconScaleBeatY)
+            startTween('Tween'..i,i..'.scale',{x = IconScaleX, y = IconScaleY},0.5,{ease = 'bounceOut'})
+        end
     end
 end
+
+
+
+-- defaults
+function defaults()
+    iconBFXDefault = getProperty('iconBF.x')
+    iconBFYDefault = getProperty('iconBF.y')
+    iconDadXDefault = getProperty('iconDad.x')
+    iconDadYDefault = getProperty('iconDad.y')
+    iconBFAngleDefault = getProperty('iconBF.angle')
+    iconDadAngleDefault = getProperty('iconDad.angle')
+end
+
+
+-- IconsArrows
+function IconBFArrows(noteData)
+    if IconsArrows then
+        local x,y = iconBFXDefault,iconBFYDefault
+        if noteData == 0 then x = x - IconMove
+        elseif noteData == 1 then y = y + IconMove
+        elseif noteData == 2 then y = y - IconMove
+        elseif noteData == 3 then x = x + IconMove end
+        doTweenX('iconBFX','iconBF',x,0.15)
+        doTweenY('iconBFY','iconBF',y,0.15)
+        runTimer('iconBFReturn',0.15)
+    end
+end
+function IconDadArrows(noteData)
+    if IconsArrows then
+        local x,y = iconDadXDefault,iconDadYDefault
+        if noteData == 0 then x = x - IconMove
+        elseif noteData == 1 then y = y + IconMove
+        elseif noteData == 2 then y = y - IconMove
+        elseif noteData == 3 then x = x + IconMove end
+        doTweenX('iconDadX','iconDad',x,0.15)
+        doTweenY('iconDadY','iconDad',y,0.15)
+        runTimer('iconDadReturn',0.15)
+    end
+end
+function IconsReturn(t)
+    if t == 'iconBFReturn' or t == 'iconDadReturn' then
+        local char = t == 'iconBFReturn' and 'iconBF' or 'iconDad'
+        doTweenX(char..'XReturn',char,_G[char..'XDefault'],0.15)
+        doTweenY(char..'YReturn',char,_G[char..'YDefault'],0.15)
+    end
+end
+
+
+-- HealthBarLow
+function HealthBarLow()
+    local hp,stepMod = getProperty('healthBar.percent'),curStep % 6
+    local bfColor = hp < 20 and (stepMod == 0 and RightBarBFColor or rgbToHex(bfRGB[1],bfRGB[2],bfRGB[3])) or rgbToHex(bfRGB[1],bfRGB[2],bfRGB[3])
+    local dadColor = hp > 80 and (stepMod == 0 and LeftBarDadColor or rgbToHex(dadRGB[1],dadRGB[2],dadRGB[3])) or rgbToHex(dadRGB[1],dadRGB[2],dadRGB[3])
+    if HealthBarLow then
+        doTweenColor('healthBarBF','healthBar.rightBar',bfColor,hp < 20 and 0.15 or 0.5)
+        doTweenColor('healthBarDad','healthBar.leftBar',dadColor,0.15)
+    end
+end
+
 
 -- Reemplazo de saveFile [saveFileLua]
 function saveFileLua(filePath,content,absolute)
@@ -321,7 +408,6 @@ function saveFileLua(filePath,content,absolute)
         }
     ]])
 end
-
 
 -- HealthDrain
 function HealthDrain()
@@ -404,7 +490,7 @@ end
 -- healthBarFix
 function healthBarFix()
     if HealthBarColorFix then
-        local bfRGB,dadRGB = getProperty('boyfriend.healthColorArray'),getProperty('dad.healthColorArray')
+        bfRGB,dadRGB = getProperty('boyfriend.healthColorArray'),getProperty('dad.healthColorArray')
         if areColorsSimilar(bfRGB[1],bfRGB[2],bfRGB[3],dadRGB[1],dadRGB[2],dadRGB[3]) then
             local adjustedColor = adjustColor(dadRGB[1],dadRGB[2],dadRGB[3],calculateLuminosity(dadRGB[1],dadRGB[2],dadRGB[3]))
             setHealthBarColors(rgbToHex(adjustedColor[1],adjustedColor[2],adjustedColor[3]),rgbToHex(bfRGB[1],bfRGB[2],bfRGB[3]))
