@@ -1,4 +1,4 @@
--- | HUD MINI FLOW v0.9 Test | By LuaXdea |
+-- | HUD MINI FLOW v1.0 | By LuaXdea |
 -- [YouTube]: https://youtube.com/@lua-x-dea?si=NRm2RlRsL8BLxAl5
 
 -- | Psych Engine | Supported versions |
@@ -39,6 +39,7 @@ local DisableBotPlay = false -- Evita que el jugador use botplay [default: false
 -- | UI settings |
 local UiGroupCam = 'camHUD' -- Cámara para uiGroup [default: camHUD]
 local ComboGroupCam = 'camHUD' -- Cámara para comboGroup [default: camHUD]
+local BotplayTxt = 'BOTPLAY' -- Texto de botplay [default: BOTPLAY]
 local ForceScroll = false -- Forzar el desplazamiento todo el UI [default: false]
 local ScrollX = 0 -- Desplazamiento X (Requiere ForceScroll) [default: 0]
 local ScrollY = 0 -- Desplazamiento Y (Requiere ForceScroll) [default: 0]
@@ -69,6 +70,12 @@ local HealthBarLow = true --[[ La barra de vida parpadea,
 
 -- | ScoreMini |
 local ScoreTxtMini = true -- Opción para que se vea el ScoreMini [default: true]
+local ScoreMiniTxt = nil --[[ Texto que acompañara a la puntuación [default: nil]
+    Ejemplo;
+local ScoreMiniTxt = 'Score: '
+    Será vera así:
+    Score: 0
+    ]]
 local TimeScoreMini = 0.2 --[[ El tiempo que tardará,
     en llegar a la nueva puntuación [default: 0.2]
     ]]
@@ -112,7 +119,12 @@ local camY_gf = 450
 
 -- | Offsets |
 local IndividualOffsets = false -- Es para si quieres usar los Offsets por individual [default: false]
-local GeneralOffset = 25 -- Reemplaza a los offsets de dad,boyfriend y gf si el IndividualOffsets está en false (Requiere IndividualOffsets == false) [default: 25]
+local GeneralOffset = 25 --[[ Reemplaza a los offsets de
+    dad,boyfriend y gf,
+    Si el IndividualOffsets está en false
+    (Requiere IndividualOffsets == false)
+    [default: 25]
+    ]]
 
 -- | Offsets de las cámaras | (Requiere IndividualOffsets)
 -- Offset: Define hasta dónde puede desplazarse la cámara al seguir a los personajes.
@@ -149,8 +161,6 @@ function onCreate()
 end
 function UIsetting()
     local ScrollY = not ForceScroll and (downscroll and 0 or 590) or ScrollY
-    setProperty('camGame.alpha',0)
-    setProperty('camHUD.alpha',0)
     setProperty('healthBar.bg.visible',false)
     setProperty('healthBar.x',-150 + ScrollX)
     setProperty('healthBar.y',15 + ScrollY)
@@ -183,6 +193,7 @@ function UIsetting()
     setProperty('timeBar.alpha',Intro and 0 or 1)
 
     setProperty('timeTxt.visible',false)
+    setTextString('botplayTxt',BotplayTxt)
 end
 function onUpdate(elapsed)
     if LowHealthSpin and curStep > 0 then
@@ -245,8 +256,8 @@ function onCreatePost()
     defaultCams() -- CamFlow
 end
 function onUpdateFunction(elapsed)
-    HealthBarLow() -- HealthBarLow
     IconsAnimations() -- IconsAnimations
+    HealthBarLow() -- HealthBarLow
 end
 function onUpdatePostFunction(elapsed)
     ScoreMiniPost(elapsed) -- ScoreMini
@@ -316,11 +327,12 @@ end
 -- Nota: El jodido "callMethod" no funcionaba bien con el "HealthIcon", así que mejor use "runHaxeCode"
 function IconMaker()
     runHaxeCode([[
-        var iconBF = new HealthIcon(boyfriend.healthIcon,true); // Reemplazo de iconP1
+    import objects.HealthIcon;
+        var iconBF = new HealthIcon(boyfriend.healthIcon,true);
         game.variables.set('iconBF',iconBF);
         game.add(iconBF);
         game.uiGroup.add(iconBF);
-        var iconDad = new HealthIcon(dad.healthIcon,false); // Reemplazo de iconP2
+        var iconDad = new HealthIcon(dad.healthIcon,false);
         game.variables.set('iconDad',iconDad);
         game.add(iconDad);
         game.uiGroup.add(iconDad);
@@ -414,13 +426,14 @@ function HealthBarLow()
     local bfAlpha = hp < 20 and (stepMod == 0 and 1 or 0.2) or 1
     local dadAlpha = hp > 80 and (stepMod == 0 and 1 or 0.2) or 1
     if HealthBarLow then
-        doTweenAlpha('healthBarBF', 'healthBar.rightBar',bfAlpha,hp < 20 and 0.15 or 0.5)
-        doTweenAlpha('healthBarDad', 'healthBar.leftBar',dadAlpha,0.15)
+        doTweenAlpha('healthBarBF','healthBar.rightBar',bfAlpha,hp < 20 and 0.15 or 0.5)
+        doTweenAlpha('healthBarDad','healthBar.leftBar',dadAlpha,0.15)
     end
 end
 
 
--- Reemplazo de saveFile [saveFileLua]
+--[=[ Reemplazo de saveFile [saveFileLua]
+Se usará en próximas actualización
 function saveFileLua(filePath,content,absolute)
     local absolute = absolute or false
     runHaxeCode([[
@@ -433,7 +446,7 @@ function saveFileLua(filePath,content,absolute)
         }
     ]])
 end
-
+]=]
 
 -- HealthDrain
 function HealthDrain()
@@ -475,7 +488,8 @@ function ScoreMiniPost(elapsed)
         end
     end
     if ScoreTxtMini and not getProperty('cpuControlled') then
-        setTextString('scoreTxt',math.floor(ScoreActual))
+        local ScoreMiniTxt = ScoreMiniTxt == nil and '' or ScoreMiniTxt
+        setTextString('scoreTxt',ScoreMiniTxt..math.floor(ScoreActual))
     end
 end
 
