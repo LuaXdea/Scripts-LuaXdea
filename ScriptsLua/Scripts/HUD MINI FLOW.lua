@@ -1,4 +1,4 @@
--- | HUD MINI FLOW v1.0 | By LuaXdea |
+-- | HUD MINI FLOW v1.2 (Test) | By LuaXdea |
 -- [YouTube]: https://youtube.com/@lua-x-dea?si=NRm2RlRsL8BLxAl5
 
 -- | Psych Engine | Supported versions |
@@ -195,21 +195,6 @@ function UIsetting()
     setProperty('timeTxt.visible',false)
     setTextString('botplayTxt',BotplayTxt)
 end
-function onUpdate(elapsed)
-    if LowHealthSpin and curStep > 0 then
-        doTweenAngle('IconBFAngle','iconBF',getProperty('healthBar.percent') < 20 and iconBFAngleDefault + 360 or iconBFAngleDefault,0.3)
-        doTweenAngle('IconDadAngle','iconDad',getProperty('healthBar.percent') > 80 and iconDadAngleDefault + 360 or iconDadAngleDefault,0.3)
-    end
-    if ColorBarVanilla then
-        HealthBarColorFix = false
-        setHealthBarColors('FF0000','00FF00')
-    end
-    onUpdateFunction(elapsed)
-end
-function onUpdatePost(elapsed)
-    setProperty('camZooming',not DisableCameraZoom)
-    onUpdatePostFunction(elapsed)
-end
 function onCountdownTick(counter)
     if Intro then
         for _,i in pairs({'iconBF','iconDad'}) do
@@ -255,11 +240,12 @@ function onCreatePost()
     defaults() -- defaults
     defaultCams() -- CamFlow
 end
-function onUpdateFunction(elapsed)
+function onUpdate(elapsed)
     IconsAnimations() -- IconsAnimations
     HealthBarLow() -- HealthBarLow
+    Extras() -- Extra (onUpdate)
 end
-function onUpdatePostFunction(elapsed)
+function onUpdatePost(elapsed)
     ScoreMiniPost(elapsed) -- ScoreMini
     healthBarFix() -- healthBarFix
     onCamFlow() -- CamFlow
@@ -345,20 +331,16 @@ function IconsAnimations()
     setProperty('iconP2.visible',false)
     setProperty('iconBF.animation.curAnim.curFrame',getProperty('healthBar.percent') < 20 and 1 or 0)
     setProperty('iconDad.animation.curAnim.curFrame',getProperty('healthBar.percent') > 80 and 1 or 0)
+    if LowHealthSpin and curStep > 0 then
+        doTweenAngle('IconBFAngle','iconBF',getProperty('healthBar.percent') < 20 and iconBFAngleDefault + 360 or iconBFAngleDefault,0.3)
+        doTweenAngle('IconDadAngle','iconDad',getProperty('healthBar.percent') > 80 and iconDadAngleDefault + 360 or iconDadAngleDefault,0.3)
+    end
 end
 function IconMakerRefresh(n,v1)
     if n == 'Change Character' then
-        if string.lower(v1) == 'dad' or string.lower(v1) == 'opponent' then
-            runHaxeCode([[
-                var iconDad = game.variables.get('iconDad');
-                iconDad.changeIcon(dad.healthIcon);
-            ]])
-        else
-            runHaxeCode([[
-                var iconBF = game.variables.get('iconBF');
-                iconBF.changeIcon(boyfriend.healthIcon);
-            ]])
-        end
+        local iconVar = (string.lower(v1) == 'dad' or string.lower(v1) == 'opponent') and 'iconDad' or 'iconBF'
+        local charIcon = (iconVar == 'iconDad') and 'dad.healthIcon' or 'boyfriend.healthIcon'
+        runHaxeCode(('game.variables.get("%s").changeIcon(%s)'):format(iconVar,charIcon))
     end
 end
 
@@ -448,11 +430,20 @@ function saveFileLua(filePath,content,absolute)
 end
 ]=]
 
--- HealthDrain
+-- HealthDrain (Test)
 function HealthDrain()
     if HealthDrainOp and getHealth() >= MinHealth then
-        setHealth(getHealth() - Drain)
+        addHealth(- Drain)
     end
+end
+
+-- Extras (onUpdate)
+function Extras()
+    if ColorBarVanilla then
+        HealthBarColorFix = false
+        setHealthBarColors('FF0000','00FF00')
+    end
+    setProperty('camZooming',not DisableCameraZoom)
 end
 
 
