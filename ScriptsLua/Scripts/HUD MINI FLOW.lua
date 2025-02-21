@@ -1,4 +1,4 @@
--- | HUD MINI FLOW v1.4 (Test) | By LuaXdea |
+-- | HUD MINI FLOW v1.4 (Test.1) | By LuaXdea |
 -- [YouTube]: https://youtube.com/@lua-x-dea?si=NRm2RlRsL8BLxAl5
 
 -- | Psych Engine | Supported versions |
@@ -262,7 +262,6 @@ function onUpdatePost(elapsed)
     ScoreMiniPost(elapsed) -- ScoreMini
     healthBarFix() -- healthBarFix
     onCamFlow() -- CamFlow
-    debugPrint(defaultPlayerStrumX0)
 end
 function goodNoteHit(membersIndex,noteData,noteType,isSustainNote)
     IconBFArrows(noteData) -- IconsArrows
