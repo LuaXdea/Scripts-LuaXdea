@@ -1,4 +1,4 @@
--- | HUD MINI FLOW v1.2 (Test) | By LuaXdea |
+-- | HUD MINI FLOW v1.4 (Test) | By LuaXdea |
 -- [YouTube]: https://youtube.com/@lua-x-dea?si=NRm2RlRsL8BLxAl5
 
 -- | Psych Engine | Supported versions |
@@ -55,6 +55,17 @@ local ShowComboNum = true -- Combo de números [default: true]
 local ShowRating = true -- Clasificaciones [default: true]
 
 
+-- | Simple Human Bot |
+local ActivateBot = false -- Activa o desactiva el bot [default: false]
+local precision = 'Normal' --[[ Precision del bot
+    Opciones: "Normal", "Expert", "Custom"
+    [default: Normal]
+    ]]
+local customOffsetRange = {-100,80} --[[ Precision personalizable
+    (Requiere ActivateBot) [default: {-100,80}]
+    ]]
+
+
 -- | Health |
 local HealthDrainOp = true -- El oponente te drena vida [default: true]
 local Drain = 0.02 -- Drenado de vida (Requiere HealthDrainOp) [default: 0.02]
@@ -85,6 +96,7 @@ local ColorScoreMini = '00FF00' --[[ El color que se volverá,
     ]]
 
 
+-- | CamFlow |
 local CamFlow = true -- Activa el CamFlow [default: true]
 local FollowingMode = true --[[ Elige el tipo de desplazamiento que quieres usar:
     true = targetOffset
@@ -235,7 +247,7 @@ function onPause()
     if DisablePause then return Function_Stop; end
 end
 function onCreatePost()
-    IconMaker() -- IconMaker
+    UIMaker() -- UIMaker
     UIsetting() -- UIsetting
     defaults() -- defaults
     defaultCams() -- CamFlow
@@ -243,25 +255,27 @@ end
 function onUpdate(elapsed)
     IconsAnimations() -- IconsAnimations
     HealthBarLow() -- HealthBarLow
+    SimpleHumanBot() -- Simple Human Bot
     Extras() -- Extra (onUpdate)
 end
 function onUpdatePost(elapsed)
     ScoreMiniPost(elapsed) -- ScoreMini
     healthBarFix() -- healthBarFix
     onCamFlow() -- CamFlow
+    debugPrint(defaultPlayerStrumX0)
 end
 function goodNoteHit(membersIndex,noteData,noteType,isSustainNote)
     IconBFArrows(noteData) -- IconsArrows
 end
 function opponentNoteHit(membersIndex,noteData,noteType,isSustainNote)
     IconDadArrows(noteData) -- IconsArrows
-    HealthDrain()
+    HealthDrain() -- HealthDrain
 end
 function onTimerCompleted(tag,loops,loopsLeft)
     IconsReturn(tag) -- IconsArrows
 end
 function onEvent(eventName,value1,value2,strumTime)
-    IconMakerRefresh(eventName,value1)
+    IconMakerRefresh(eventName,value1) -- IconMakerRefresh
 end
 
 
@@ -309,16 +323,18 @@ function onDestroy()
 end
 
 
--- IconMaker
+-- UIMaker
 -- Nota: El jodido "callMethod" no funcionaba bien con el "HealthIcon", así que mejor use "runHaxeCode"
-function IconMaker()
+function UIMaker()
     runHaxeCode([[
-    import objects.HealthIcon;
-        var iconBF = new HealthIcon(boyfriend.healthIcon,true);
+import objects.HealthIcon;
+
+    var iconBF = new HealthIcon(boyfriend.healthIcon,true);
         game.variables.set('iconBF',iconBF);
         game.add(iconBF);
         game.uiGroup.add(iconBF);
-        var iconDad = new HealthIcon(dad.healthIcon,false);
+
+    var iconDad = new HealthIcon(dad.healthIcon,false);
         game.variables.set('iconDad',iconDad);
         game.add(iconDad);
         game.uiGroup.add(iconDad);
@@ -430,11 +446,44 @@ function saveFileLua(filePath,content,absolute)
 end
 ]=]
 
--- HealthDrain (Test)
+-- HealthDrain
 function HealthDrain()
     if HealthDrainOp and getHealth() >= MinHealth then
-        addHealth(- Drain)
+        addHealth(-math.abs(Drain))
     end
+end
+
+-- Simple Human Bot
+function SimpleHumanBot()
+    runHaxeCode([[
+    var ActivateBot = ]]..tostring(ActivateBot)..[[;
+    var precision = "]]..precision..[[";
+    var customOffsetRange = []]..customOffsetRange[1]..[[,]]..customOffsetRange[2]..[[];
+
+   if (!ActivateBot) return;
+        var songPos = Conductor.songPosition;
+        var randomOffset:Int;
+        for (note in game.notes) {
+            switch(precision) {
+                case 'Normal':
+                    randomOffset = FlxG.random.int(-100,100);
+                case 'Expert':
+                    randomOffset = FlxG.random.int(-50,50);
+                case 'Custom':
+                    randomOffset = FlxG.random.int(customOffsetRange[0],customOffsetRange[1]);
+                default:
+                    randomOffset = FlxG.random.int(-100,100);
+            }
+            if (note.canBeHit && note.strumTime <= songPos - randomOffset && !note.ignoreNote) {
+                game.goodNoteHit(note);
+            }
+        }
+        for (strum in game.playerStrums) {
+            if (strum.animation.curAnim.finished && strum.animation.curAnim.name != 'static') {
+                strum.playAnim('static');
+            }
+        }
+    ]])
 end
 
 -- Extras (onUpdate)
@@ -488,12 +537,12 @@ end
 -- CamFlow
 function defaultCams()
     if not CustomCam then
-        camX_player= getMidpointX('boyfriend') - 100
-        camY_player = getMidpointY('boyfriend') - 100
-        camX_opponent = getMidpointX('dad') + 150
-        camY_opponent = getMidpointY('dad') - 100
-        camX_gf = getMidpointX('gf')
-        camY_gf = getMidpointY('gf')
+        camX_player= getMidpointX('boyfriend') - getProperty('boyfriend.cameraPosition[0]') - getProperty('boyfriendCameraOffset[0]') - 100
+        camY_player = getMidpointY('boyfriend') + getProperty('boyfriend.cameraPosition[1]') + getProperty('boyfriendCameraOffset[1]') - 100
+        camX_opponent = getMidpointX('dad') + getProperty('dad.cameraPosition[0]') + getProperty('opponentCameraOffset[0]') + 150
+        camY_opponent = getMidpointY('dad') + getProperty('dad.cameraPosition[1]') + getProperty('opponentCameraOffset[1]') - 100
+        camX_gf = getMidpointX('gf') + getProperty('gf.cameraPosition[0]') + getProperty('girlfriendCameraOffset[0]')
+        camY_gf = getMidpointY('gf') + getProperty('gf.cameraPosition[1]') + getProperty('girlfriendCameraOffset[1]')
     end
 end
 function onCamFlow()
@@ -543,7 +592,17 @@ function adjustColor(r,g,b,lum)
 end
 
 
--- ColorHex
-function rgbToHex(r,g,b)
-    return string.format("0x%02X%02X%02X",r,g,b)
+-- ColorHex v2
+function rgbToHex(input,g,b)
+    local r
+    if type(input) == 'table' then
+        r,g,b = input.r or input[1],input.g or input[2],input.b or input[3]
+    else
+        r = input
+    end
+    if type(r) ~= 'number' or type(g) ~= 'number' or type(b) ~= 'number' or
+       r < 0 or r > 255 or g < 0 or g > 255 or b < 0 or b > 255 then
+        return nil
+    end
+    return string.format('0x%02X%02X%02X',r,g,b)
 end
