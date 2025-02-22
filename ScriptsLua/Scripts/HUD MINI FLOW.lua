@@ -1,8 +1,14 @@
--- | HUD MINI FLOW v1.4 (Test.1) | By LuaXdea |
+-- | HUD MINI FLOW v1.5 | By LuaXdea |
 -- [YouTube]: https://youtube.com/@lua-x-dea?si=NRm2RlRsL8BLxAl5
+-- [Gamebanana]: https://gamebanana.com/tools/19055
 
--- | Psych Engine | Supported versions |
--- • 0.7.2h • 0.7.3
+-- | Psych P-Slice | Supported versions |
+-- • 2.3.1
+
+--[[
+Proximamente en la versión [2.0] se agregara muchas cosas que hice.
+Pero todo estara en el HUD MINI FLOW.
+]]
 
 
 -- | Configuración |
@@ -48,14 +54,14 @@ local IconScaleY = 0.7 -- EscalaY base de los iconos [default: 0.7]
 local IconsArrows = true -- Los iconos se moverán con cada nota [default: true]
 local IconMove = 7 -- Intensidad de movimiento (Requiere IconsArrows) [default: 7]
 local IconsScaleBeatOn = true -- Activa el IconsScaleBeat
-local IconScaleBeatX = 0.8 -- Por cada Beat hará un cambio en su escalaX [default: 0.8]
-local IconScaleBeatY = 0.8 -- Por cada Beat hará un cambio en su escalaY [default: 0.8]
+local IconScaleBeatX = 0.9 -- Por cada Beat hará un cambio en su escalaX [default: 0.8]
+local IconScaleBeatY = 0.9 -- Por cada Beat hará un cambio en su escalaY [default: 0.8]
 local ShowCombo = false -- Combo [default: false]
 local ShowComboNum = true -- Combo de números [default: true]
 local ShowRating = true -- Clasificaciones [default: true]
 
 
--- | Simple Human Bot |
+-- | Simple Human Bot | Original: https://gamebanana.com/tools/18226
 local ActivateBot = false -- Activa o desactiva el bot [default: false]
 local precision = 'Normal' --[[ Precision del bot
     Opciones: "Normal", "Expert", "Custom"
@@ -172,7 +178,7 @@ function onCreate()
     Options()
 end
 function UIsetting()
-    local ScrollY = not ForceScroll and (downscroll and 0 or 590) or ScrollY
+    local ScrollY = not ForceScroll and (downscroll and 0 or 575) or ScrollY
     setProperty('healthBar.bg.visible',false)
     setProperty('healthBar.x',-150 + ScrollX)
     setProperty('healthBar.y',15 + ScrollY)
@@ -366,7 +372,8 @@ function IconsScaleBeat()
         for _,i in pairs({'iconBF','iconDad'}) do
             setProperty(i..'.scale.x',IconScaleBeatX)
             setProperty(i..'.scale.y',IconScaleBeatY)
-            startTween('Tween'..i,i..'.scale',{x = IconScaleX, y = IconScaleY},0.5,{ease = 'bounceOut'})
+            doTweenX('TweenX'..i,i..'.scale',IconScaleX,0.5,'bounceOut')
+            doTweenY('TweenY'..i,i..'.scale',IconScaleY,0.5,'bounceOut')
         end
     end
 end
@@ -419,9 +426,9 @@ end
 
 -- HealthBarLow
 function HealthBarLow()
-    local hp,stepMod = getProperty('healthBar.percent'), curStep % 6
-    local bfAlpha = hp < 20 and (stepMod == 0 and 1 or 0.2) or 1
-    local dadAlpha = hp > 80 and (stepMod == 0 and 1 or 0.2) or 1
+    local hp,stepMod = getProperty('healthBar.percent'),curStep % 6
+    local bfAlpha = hp < 20 and (stepMod == 0 and 1 or 0.1) or 1
+    local dadAlpha = hp > 80 and (stepMod == 0 and 1 or 0.1) or 1
     if HealthBarLow then
         doTweenAlpha('healthBarBF','healthBar.rightBar',bfAlpha,hp < 20 and 0.15 or 0.5)
         doTweenAlpha('healthBarDad','healthBar.leftBar',dadAlpha,0.15)
@@ -586,7 +593,7 @@ function calculateLuminosity(r,g,b)
     return 0.299 * r + 0.587 * g + 0.114 * b
 end
 function adjustColor(r,g,b,lum)
-    local adj = (lum > 128) and -60 or 60
+    local adj = (lum > 128) and -70 or 70
     return { math.max(0,math.min(255,r + adj)),math.max(0,math.min(255,g + adj)),math.max(0,math.min(255,b + adj)) }
 end
 
