@@ -1,15 +1,11 @@
--- | HUD MINI FLOW v1.5 | By LuaXdea |
+-- | HUD MINI FLOW | By LuaXdea |
+local VersionFlow = '1.6.Test' -- Version de HUD MINI FLOW
 -- [YouTube]: https://youtube.com/@lua-x-dea?si=NRm2RlRsL8BLxAl5
 -- [Gamebanana]: https://gamebanana.com/tools/19055
 
--- | Psych P-Slice | Supported versions |
--- • 2.3.1
-
---[[
-Proximamente en la versión [2.0] se agregara muchas cosas que hice.
-Pero todo estara en el HUD MINI FLOW.
-]]
-
+-- | Psych Engine | Supported versions |
+-- • 0.7.2h
+-- • 0.7.3
 
 -- | Configuración |
 
@@ -19,6 +15,13 @@ local ColorBarVanilla = false -- Cambia el color de la barra de vida al del Base
 local HealthBarColorFix = true --[[ Si el color de la barra,
     de vida de DAD y BF son iguales o muy similares,
     se hará un ajuste en el color para que no sean iguales
+    [default: true]
+    ]]
+local SmoothHealth = true -- HealthBar se actualizará de forma suave [default: true]
+local VersionAlert = true --[[ Te dira avisará si la versión,
+    de Psych Engine que estas usando no es compatible,
+    con el HUD MINI FLOW
+    (0.7.2h • 0.7.3)
     [default: true]
     ]]
 
@@ -163,6 +166,11 @@ local directionOffsets = {
     {0,-1}, -- Arriba [Note 6]
     {1,0} -- Derecha [Note 7]
 }
+
+-- Extras
+local PathImages = 'HudMiniFlow/'
+local VersionCheck = version ~= '0.7.2h' and version ~= '0.7.3'
+
 function onCreate()
     setProperty('skipCountdown',SkipCountdown)
     setProperty('guitarHeroSustains',not HealthDrainOp)
@@ -175,39 +183,51 @@ function onCreate()
     setProperty('showCombo',ShowCombo)
     setProperty('showComboNum',ShowComboNum)
     setProperty('showRating',ShowRating)
+
+    if VersionAlert and VersionCheck then
+        createInstance('Background','flixel.addons.display.FlxBackdrop')
+        loadGraphic('Background',PathImages..'BG')
+        setObjectCamera('Background','camOther')
+        screenCenter('Background')
+        scaleObject('Background',0.05,0.05)
+        setProperty('Background.color',getColorFromHex('840000'))
+        setProperty('Background.alpha',0.35)
+        setProperty('Background.velocity.x',-100)
+        setProperty('Background.velocity.y',100)
+        addInstance('Background',true)
+
+        makeLuaText('T1','English:\nThe Psych Engine version you are using is not compatible with "HUD MINI FLOW v'..VersionFlow..'"\n\nEspañol:\nLa versión de Psych Engine que estás usando no es compatible con "HUD MINI FLOW v'..VersionFlow..'"',screenWidth,0,screenHeight / 2.5)
+        setTextSize('T1',23)
+        setTextColor('T1','RED')
+        setTextAlignment('T1','CENTER')
+        setObjectCamera('T1','camOther')
+        addLuaText('T1',true)
+    end
     Options()
 end
+
 function UIsetting()
     local ScrollY = not ForceScroll and (downscroll and 0 or 575) or ScrollY
     setProperty('healthBar.bg.visible',false)
-    setProperty('healthBar.x',-150 + ScrollX)
-    setProperty('healthBar.y',15 + ScrollY)
-    setProperty('healthBar.scale.x',Intro and 0.01 or 0.4)
-    setProperty('healthBar.scale.y',Intro and 0.01 or 1)
+    callMethod('healthBar.setPosition',{-150 + ScrollX,15 + ScrollY})
+    callMethod('healthBar.scale.set',{Intro and 0.01 or 0.4,Intro and 0.01 or 1})
     setProperty('healthBar.alpha',Intro and 0 or 1)
 
-    setProperty('iconBF.x',ScrollX + (Intro and 105 or 145))
-    setProperty('iconBF.y',30 + ScrollY)
-    setProperty('iconBF.scale.x',Intro and 0.01 or IconScaleX)
-    setProperty('iconBF.scale.y',Intro and 0.01 or IconScaleY)
+    callMethod('iconBF.setPosition',{ScrollX + (Intro and 105 or 145),30 + ScrollY})
+    callMethod('iconBF.scale.set',{Intro and 0.01 or IconScaleX,Intro and 0.01 or IconScaleY})
     setProperty('iconBF.alpha',Intro and 0 or 1)
 
-    setProperty('iconDad.x',ScrollX + (Intro and 50 or 20))
-    setProperty('iconDad.y',30 + ScrollY)
-    setProperty('iconDad.scale.x',Intro and 0.01 or IconScaleX)
-    setProperty('iconDad.scale.y',Intro and 0.01 or IconScaleY)
+    callMethod('iconDad.setPosition',{ScrollX + (Intro and 50 or 20),30 + ScrollY})
+    callMethod('iconDad.scale.set',{Intro and 0.01 or IconScaleX,Intro and 0.01 or IconScaleY})
     setProperty('iconDad.alpha',Intro and 0 or 1)
 
+    callMethod('scoreTxt.setPosition',{-489 + ScrollX,35 + ScrollY})
     setProperty('scoreTxt.visible',ScoreTxtMini)
     setProperty('scoreTxt.alpha',Intro and 0 or 1)
-    setProperty('scoreTxt.x',-489 + ScrollX)
-    setProperty('scoreTxt.y',35 + ScrollY)
 
+    callMethod('timeBar.setPosition',{-50 + ScrollX,5 + ScrollY})
+    callMethod('timeBar.scale.set',{Intro and 0.01 or 0.4,Intro and 0.01 or 1})
     setProperty('timeBar.bg.visible',false)
-    setProperty('timeBar.x',-50 + ScrollX)
-    setProperty('timeBar.y',5 + ScrollY)
-    setProperty('timeBar.scale.x',Intro and 0.01 or 0.4)
-    setProperty('timeBar.scale.y',Intro and 0.01 or 1)
     setProperty('timeBar.alpha',Intro and 0 or 1)
 
     setProperty('timeTxt.visible',false)
@@ -262,10 +282,11 @@ function onUpdate(elapsed)
     IconsAnimations() -- IconsAnimations
     HealthBarLow() -- HealthBarLow
     SimpleHumanBot() -- Simple Human Bot
-    Extras() -- Extra (onUpdate)
+    ExtrasUpdate() -- ExtrasUpdate (onUpdate)
 end
 function onUpdatePost(elapsed)
     ScoreMiniPost(elapsed) -- ScoreMini
+    ExtrasUpdatePost(elapsed) -- ExtrasUpdatePost (onUpdatePost)
     healthBarFix() -- healthBarFix
     onCamFlow() -- CamFlow
 end
@@ -359,7 +380,7 @@ function IconsAnimations()
 end
 function IconMakerRefresh(n,v1)
     if n == 'Change Character' then
-        local iconVar = (string.lower(v1) == 'dad' or string.lower(v1) == 'opponent') and 'iconDad' or 'iconBF'
+        local iconVar = (string.lower(v1) == 'dad' or string.lower(v1) == 'opponent') and 'iconDad' or not (string.lower(v1) == 'gf' or string.lower(v1) == 'girlfriend') and 'iconBF'
         local charIcon = (iconVar == 'iconDad') and 'dad.healthIcon' or 'boyfriend.healthIcon'
         runHaxeCode(('game.variables.get("%s").changeIcon(%s)'):format(iconVar,charIcon))
     end
@@ -370,10 +391,9 @@ end
 function IconsScaleBeat()
     if IconsScaleBeatOn then
         for _,i in pairs({'iconBF','iconDad'}) do
-            setProperty(i..'.scale.x',IconScaleBeatX)
-            setProperty(i..'.scale.y',IconScaleBeatY)
-            doTweenX('TweenX'..i,i..'.scale',IconScaleX,0.5,'bounceOut')
-            doTweenY('TweenY'..i,i..'.scale',IconScaleY,0.5,'bounceOut')
+            callMethod(i..'.scale.set',{IconScaleBeatX,IconScaleBeatY})
+            doTweenX('Tween'..i..'ScaleX',i..'.scale',IconScaleX,0.5,'bounceOut')
+            doTweenY('Tween'..i..'ScaleY',i..'.scale',IconScaleY,0.5,'bounceOut')
         end
     end
 end
@@ -492,13 +512,26 @@ function SimpleHumanBot()
     ]])
 end
 
--- Extras (onUpdate)
-function Extras()
+-- ExtrasUpdate (onUpdate)
+function ExtrasUpdate()
     if ColorBarVanilla then
         HealthBarColorFix = false
         setHealthBarColors('FF0000','00FF00')
     end
     setProperty('camZooming',not DisableCameraZoom)
+end
+
+-- ExtrasUpdatePost (onUpdatePost)
+local HealthValue = 1
+function ExtrasUpdatePost(elapsed)
+    if SmoothHealth then
+        local HealthValue = getHealth() + (HealthValue - getHealth()) * math.exp(-elapsed * 3.125)
+        setProperty('healthBar.percent',(HealthValue / 2) * 100)
+    end
+    if VersionAlert and VersionCheck then
+        setProperty('camGame.alpha',0.5)
+        setProperty('camHUD.alpha',0.5)
+    end
 end
 
 
@@ -566,12 +599,10 @@ function onCamFlow()
         if FollowingMode then
             local FollowX = gfSection and camX_gf or (mustHitSection and camX_player or camX_opponent)
             local FollowY = gfSection and camY_gf or (mustHitSection and camY_player or camY_opponent)
-            setProperty('camFollow.x',FollowX)
-            setProperty('camFollow.y',FollowY)
+            callMethod('camFollow.setPosition',{FollowX,FollowY})
         end
-    local FollowResult = FollowingMode and 'camGame.targetOffset' or not FollowingMode and 'camFollow'
-        setProperty(FollowResult..'.x',offsetX)
-        setProperty(FollowResult..'.y',offsetY)
+    local FollowResult = FollowingMode and 'camGame.targetOffset.set' or not FollowingMode and 'camFollow.setPosition'
+        callMethod(FollowResult,{offsetX,offsetY})
     end
 end
 
