@@ -482,6 +482,13 @@ function saveFileLua(filePath,content,absolute)
 end
 ]=]
 
+-- HealthDrain
+function HealthDrain()
+    if HealthDrainOp and getHealth() >= MinHealth then
+        addHealth(-math.abs(Drain))
+    end
+end
+
 -- Simple Human Bot
 function SimpleHumanBot()
     runHaxeCode([[
