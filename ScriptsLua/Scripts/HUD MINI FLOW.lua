@@ -1,5 +1,5 @@
 -- | HUD MINI FLOW | By LuaXdea |
-local VersionFlow = '1.6.Test' -- Version de HUD MINI FLOW
+local VersionFlow = '1.6.2.Test' -- Version de HUD MINI FLOW
 -- [YouTube]: https://youtube.com/@lua-x-dea?si=NRm2RlRsL8BLxAl5
 -- [Gamebanana]: https://gamebanana.com/tools/19055
 
@@ -48,6 +48,15 @@ local DisableBotPlay = false -- Evita que el jugador use botplay [default: false
 -- | UI settings |
 local UiGroupCam = 'camHUD' -- Cámara para uiGroup [default: camHUD]
 local ComboGroupCam = 'camHUD' -- Cámara para comboGroup [default: camHUD]
+local StrumCamera = 'camHUD' -- Selecciona una cámara para los Strums [default: camHUD]
+local Strums = 'strumLineNotes' --[[ Cual de los 3 Strums se usara
+    para cambiar de cámara:
+    1. playerStrums -> Notas de jugador
+    2. opponentStrums -> Notas de oponente
+    3. strumLineNotes -> Notas de jugador y oponente
+    Por defecto se usara "strumLineNotes" en caso de que sea "nil"
+    (default: strumLineNotes)
+    ]]
 local BotplayTxt = 'BOTPLAY' -- Texto de botplay [default: BOTPLAY]
 local ForceScroll = false -- Forzar el desplazamiento todo el UI [default: false]
 local ScrollX = 0 -- Desplazamiento X (Requiere ForceScroll) [default: 0]
@@ -275,6 +284,7 @@ end
 function onCreatePost()
     UIMaker() -- UIMaker
     UIsetting() -- UIsetting
+    ExtrasCreatePost() -- ExtrasCreatePost (onCreatePost)
     defaults() -- defaults
     defaultCams() -- CamFlow
 end
@@ -286,9 +296,9 @@ function onUpdate(elapsed)
 end
 function onUpdatePost(elapsed)
     ScoreMiniPost(elapsed) -- ScoreMini
-    ExtrasUpdatePost(elapsed) -- ExtrasUpdatePost (onUpdatePost)
     healthBarFix() -- healthBarFix
     onCamFlow() -- CamFlow
+    ExtrasUpdatePost(elapsed) -- ExtrasUpdatePost (onUpdatePost)
 end
 function goodNoteHit(membersIndex,noteData,noteType,isSustainNote)
     IconBFArrows(noteData) -- IconsArrows
@@ -472,13 +482,6 @@ function saveFileLua(filePath,content,absolute)
 end
 ]=]
 
--- HealthDrain
-function HealthDrain()
-    if HealthDrainOp and getHealth() >= MinHealth then
-        addHealth(-math.abs(Drain))
-    end
-end
-
 -- Simple Human Bot
 function SimpleHumanBot()
     runHaxeCode([[
@@ -512,6 +515,33 @@ function SimpleHumanBot()
     ]])
 end
 
+-- ExtrasCreatePost (onCreatePost)
+function ExtrasCreatePost()
+    runHaxeCode([[
+    var Camera = game.]]..StrumCamera..[[;
+    var strumGroup = game.]]..(Strums == nil and 'strumLineNotes' or Strums)..[[;
+
+        for (strum in strumGroup) { 
+            if (Camera == game.camGame) strum.scrollFactor.set(1,1);
+            strum.cameras = [Camera];
+        }
+        for (noteSplash in game.grpNoteSplashes) {
+            if (Camera == game.camGame) noteSplash.scrollFactor.set(1,1);
+            noteSplash.cameras = [Camera];
+        }
+        for (note in game.unspawnNotes) {
+            if (Camera == game.camGame) note.scrollFactor.set(1,1);
+            if (strumGroup == game.opponentStrums) {
+                if (!note.mustPress) note.cameras = [Camera];
+            } else if (strumGroup == game.playerStrums) {
+                if (note.mustPress) note.cameras = [Camera];
+            } else {
+                note.cameras = [Camera];
+            }
+        }
+    ]])
+end
+
 -- ExtrasUpdate (onUpdate)
 function ExtrasUpdate()
     if ColorBarVanilla then
@@ -522,15 +552,19 @@ function ExtrasUpdate()
 end
 
 -- ExtrasUpdatePost (onUpdatePost)
-local HealthValue = 1
 function ExtrasUpdatePost(elapsed)
     if SmoothHealth then
-        local HealthValue = getHealth() + (HealthValue - getHealth()) * math.exp(-elapsed * 3.125)
-        setProperty('healthBar.percent',(HealthValue / 2) * 100)
+        prevHealth = getHealth() + ((prevHealth or getHealth()) - getHealth()) * math.exp(-elapsed * 3.125)
+        setProperty('healthBar.percent',prevHealth * 50) 
     end
     if VersionAlert and VersionCheck then
         setProperty('camGame.alpha',0.5)
         setProperty('camHUD.alpha',0.5)
+    end
+    for i = 0,getProperty('grpNoteSplashes.length') - 1 do
+        if version == '0.7.2h' then
+            setPropertyFromGroup('grpNoteSplashes',i,'visible',false)
+        end
     end
 end
 
