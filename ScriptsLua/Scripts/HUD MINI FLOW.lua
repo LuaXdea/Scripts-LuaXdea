@@ -1,5 +1,5 @@
 -- | HUD MINI FLOW | By LuaXdea |
-local VersionFlow = '1.6.2.Test' -- Version de HUD MINI FLOW
+local VersionFlow = '1.6.5.Test' -- Version de HUD MINI FLOW
 -- [YouTube]: https://youtube.com/@lua-x-dea?si=NRm2RlRsL8BLxAl5
 -- [Gamebanana]: https://gamebanana.com/tools/19055
 
@@ -177,22 +177,10 @@ local directionOffsets = {
 }
 
 -- Extras
-local PathImages = 'HudMiniFlow/'
-local VersionCheck = version ~= '0.7.2h' and version ~= '0.7.3'
+local PathImages = 'HudMiniFlow/' -- Ruta de materiales
+local VersionCheck = version ~= '0.7.2h' and version ~= '0.7.3' -- Versiones para verificar
 
-function onCreate()
-    setProperty('skipCountdown',SkipCountdown)
-    setProperty('guitarHeroSustains',not HealthDrainOp)
-    if getProperty('practiceMode') then
-        setProperty('practiceMode',not DisablePractice)
-    end
-    if getProperty('cpuControlled') then
-        setProperty('cpuControlled',not DisableBotPlay)
-    end
-    setProperty('showCombo',ShowCombo)
-    setProperty('showComboNum',ShowComboNum)
-    setProperty('showRating',ShowRating)
-
+function Materials()
     if VersionAlert and VersionCheck then
         createInstance('Background','flixel.addons.display.FlxBackdrop')
         loadGraphic('Background',PathImages..'BG')
@@ -212,7 +200,6 @@ function onCreate()
         setObjectCamera('T1','camOther')
         addLuaText('T1',true)
     end
-    Options()
 end
 
 function UIsetting()
@@ -281,44 +268,45 @@ end
 function onPause()
     if DisablePause then return Function_Stop; end
 end
+function onCreate()
+    Materials() -- Materials
+    Options() -- Options
+    ExtrasCreate() -- ExtrasCreate
+end
 function onCreatePost()
     UIMaker() -- UIMaker
     UIsetting() -- UIsetting
     ExtrasCreatePost() -- ExtrasCreatePost (onCreatePost)
-    defaults() -- defaults
-    defaultCams() -- CamFlow
 end
 function onUpdate(elapsed)
     IconsAnimations() -- IconsAnimations
-    HealthBarLow() -- HealthBarLow
     SimpleHumanBot() -- Simple Human Bot
     ExtrasUpdate() -- ExtrasUpdate (onUpdate)
 end
 function onUpdatePost(elapsed)
-    ScoreMiniPost(elapsed) -- ScoreMini
+    ScoreMiniPost(elapsed) -- ScoreMini [elapsed]
     healthBarFix() -- healthBarFix
     onCamFlow() -- CamFlow
-    ExtrasUpdatePost(elapsed) -- ExtrasUpdatePost (onUpdatePost)
+    ExtrasUpdatePost(elapsed) -- ExtrasUpdatePost (onUpdatePost) [elapsed]
 end
 function goodNoteHit(membersIndex,noteData,noteType,isSustainNote)
-    IconBFArrows(noteData) -- IconsArrows
+    IconBFArrows(noteData) -- IconsArrows [noteData]
 end
 function opponentNoteHit(membersIndex,noteData,noteType,isSustainNote)
-    IconDadArrows(noteData) -- IconsArrows
+    IconDadArrows(noteData) -- IconsArrows [noteData]
     HealthDrain() -- HealthDrain
 end
 function onTimerCompleted(tag,loops,loopsLeft)
-    IconsReturn(tag) -- IconsArrows
+    IconsReturn(tag) -- IconsReturn [tag]
 end
 function onEvent(eventName,value1,value2,strumTime)
-    IconMakerRefresh(eventName,value1) -- IconMakerRefresh
+    IconMakerRefresh(eventName,value1) -- IconMakerRefresh [eventName,value1]
 end
 
 
 
-
+-- Options
 local defaultSettings = {}
-
 function Options()
     local settingsList = {
         'downScroll','middleScroll','ghostTapping','hideHud',
@@ -388,6 +376,7 @@ function IconsAnimations()
         doTweenAngle('IconDadAngle','iconDad',getProperty('healthBar.percent') > 80 and iconDadAngleDefault + 360 or iconDadAngleDefault,0.3)
     end
 end
+-- IconMakerRefresh [eventName,value1]
 function IconMakerRefresh(n,v1)
     if n == 'Change Character' then
         local iconVar = (string.lower(v1) == 'dad' or string.lower(v1) == 'opponent') and 'iconDad' or not (string.lower(v1) == 'gf' or string.lower(v1) == 'girlfriend') and 'iconBF'
@@ -409,18 +398,7 @@ function IconsScaleBeat()
 end
 
 
--- defaults
-function defaults()
-    iconBFXDefault = getProperty('iconBF.x')
-    iconBFYDefault = getProperty('iconBF.y')
-    iconDadXDefault = getProperty('iconDad.x')
-    iconDadYDefault = getProperty('iconDad.y')
-    iconBFAngleDefault = getProperty('iconBF.angle')
-    iconDadAngleDefault = getProperty('iconDad.angle')
-end
-
-
--- IconsArrows
+-- IconsArrows [noteData]
 function IconBFArrows(noteData)
     if IconsArrows then
         local x,y = iconBFXDefault,iconBFYDefault
@@ -445,6 +423,7 @@ function IconDadArrows(noteData)
         runTimer('iconDadReturn',0.15)
     end
 end
+-- IconsReturn [tag]
 function IconsReturn(t)
     if t == 'iconBFReturn' or t == 'iconDadReturn' then
         local char = t == 'iconBFReturn' and 'iconBF' or 'iconDad'
@@ -454,20 +433,7 @@ function IconsReturn(t)
 end
 
 
--- HealthBarLow
-function HealthBarLow()
-    local hp,stepMod = getProperty('healthBar.percent'),curStep % 6
-    local bfAlpha = hp < 20 and (stepMod == 0 and 1 or 0.1) or 1
-    local dadAlpha = hp > 80 and (stepMod == 0 and 1 or 0.1) or 1
-    if HealthBarLow then
-        doTweenAlpha('healthBarBF','healthBar.rightBar',bfAlpha,hp < 20 and 0.15 or 0.5)
-        doTweenAlpha('healthBarDad','healthBar.leftBar',dadAlpha,0.15)
-    end
-end
-
-
---[=[ Reemplazo de saveFile [saveFileLua]
-Se usará en próximas actualización
+-- saveFileLua [filePath,content,absolute]
 function saveFileLua(filePath,content,absolute)
     local absolute = absolute or false
     runHaxeCode([[
@@ -480,7 +446,7 @@ function saveFileLua(filePath,content,absolute)
         }
     ]])
 end
-]=]
+
 
 -- HealthDrain
 function HealthDrain()
@@ -488,6 +454,7 @@ function HealthDrain()
         addHealth(-math.abs(Drain))
     end
 end
+
 
 -- Simple Human Bot
 function SimpleHumanBot()
@@ -522,8 +489,40 @@ function SimpleHumanBot()
     ]])
 end
 
+
+-- ExtrasCreate (onCreate)
+function ExtrasCreate()
+    setProperty('skipCountdown',SkipCountdown)
+    setProperty('guitarHeroSustains',not HealthDrainOp)
+    if getProperty('practiceMode') then
+        setProperty('practiceMode',not DisablePractice)
+    end
+    if getProperty('cpuControlled') then
+        setProperty('cpuControlled',not DisableBotPlay)
+    end
+    setProperty('showCombo',ShowCombo)
+    setProperty('showComboNum',ShowComboNum)
+    setProperty('showRating',ShowRating)
+end
+
 -- ExtrasCreatePost (onCreatePost)
 function ExtrasCreatePost()
+    -- [Defaults]
+    iconBFXDefault = getProperty('iconBF.x')
+    iconBFYDefault = getProperty('iconBF.y')
+    iconDadXDefault = getProperty('iconDad.x')
+    iconDadYDefault = getProperty('iconDad.y')
+    iconBFAngleDefault = getProperty('iconBF.angle')
+    iconDadAngleDefault = getProperty('iconDad.angle')
+    -- [DefaultCams]
+    if not CustomCam then
+        camX_player= getMidpointX('boyfriend') - getProperty('boyfriend.cameraPosition[0]') - getProperty('boyfriendCameraOffset[0]') - 100
+        camY_player = getMidpointY('boyfriend') + getProperty('boyfriend.cameraPosition[1]') + getProperty('boyfriendCameraOffset[1]') - 100
+        camX_opponent = getMidpointX('dad') + getProperty('dad.cameraPosition[0]') + getProperty('opponentCameraOffset[0]') + 150
+        camY_opponent = getMidpointY('dad') + getProperty('dad.cameraPosition[1]') + getProperty('opponentCameraOffset[1]') - 100
+        camX_gf = getMidpointX('gf') + getProperty('gf.cameraPosition[0]') + getProperty('girlfriendCameraOffset[0]')
+        camY_gf = getMidpointY('gf') + getProperty('gf.cameraPosition[1]') + getProperty('girlfriendCameraOffset[1]')
+    end
     runHaxeCode([[
     var Camera = game.]]..StrumCamera..[[;
     var strumGroup = game.]]..(Strums == nil and 'strumLineNotes' or Strums)..[[;
@@ -547,10 +546,25 @@ function ExtrasCreatePost()
             }
         }
     ]])
+    if SmoothHealth then
+        runHaxeCode([[
+            game.variables.set('smoothHealth',game.health);
+            game.healthBar.valueFunction = function() { 
+                return game.variables.get('smoothHealth'); 
+            };
+        ]])
+    end
 end
 
 -- ExtrasUpdate (onUpdate)
 function ExtrasUpdate()
+    local hp,stepMod = getProperty('healthBar.percent'),curStep % 6
+    local bfAlpha = hp < 20 and (stepMod == 0 and 1 or 0.1) or 1
+    local dadAlpha = hp > 80 and (stepMod == 0 and 1 or 0.1) or 1
+    if HealthBarLow then
+        doTweenAlpha('healthBarBF','healthBar.rightBar',bfAlpha,hp < 20 and 0.15 or 0.5)
+        doTweenAlpha('healthBarDad','healthBar.leftBar',dadAlpha,0.15)
+    end
     if ColorBarVanilla then
         HealthBarColorFix = false
         setHealthBarColors('FF0000','00FF00')
@@ -558,11 +572,14 @@ function ExtrasUpdate()
     setProperty('camZooming',not DisableCameraZoom)
 end
 
--- ExtrasUpdatePost (onUpdatePost)
+-- ExtrasUpdatePost (onUpdatePost) [elapsed]
 function ExtrasUpdatePost(elapsed)
     if SmoothHealth then
-        prevHealth = getHealth() + ((prevHealth or getHealth()) - getHealth()) * math.exp(-elapsed * 3.125)
-        setProperty('healthBar.percent',prevHealth * 50) 
+        runHaxeCode([[
+        var smoothHealth = game.variables.get('smoothHealth');
+        var factor = FlxMath.bound(]]..elapsed..[[ * 10 * game.playbackRate,0,1);
+            game.variables.set('smoothHealth',FlxMath.lerp(smoothHealth,game.health,factor));
+        ]])
     end
     if VersionAlert and VersionCheck then
         setProperty('camGame.alpha',0.5)
@@ -615,16 +632,6 @@ end
 
 
 -- CamFlow
-function defaultCams()
-    if not CustomCam then
-        camX_player= getMidpointX('boyfriend') - getProperty('boyfriend.cameraPosition[0]') - getProperty('boyfriendCameraOffset[0]') - 100
-        camY_player = getMidpointY('boyfriend') + getProperty('boyfriend.cameraPosition[1]') + getProperty('boyfriendCameraOffset[1]') - 100
-        camX_opponent = getMidpointX('dad') + getProperty('dad.cameraPosition[0]') + getProperty('opponentCameraOffset[0]') + 150
-        camY_opponent = getMidpointY('dad') + getProperty('dad.cameraPosition[1]') + getProperty('opponentCameraOffset[1]') - 100
-        camX_gf = getMidpointX('gf') + getProperty('gf.cameraPosition[0]') + getProperty('girlfriendCameraOffset[0]')
-        camY_gf = getMidpointY('gf') + getProperty('gf.cameraPosition[1]') + getProperty('girlfriendCameraOffset[1]')
-    end
-end
 function onCamFlow()
     if not CameraSpeedOff then setProperty('cameraSpeed',CameraSpeed) end
     local offsetX = FollowingMode and 0 or not FollowingMode and gfSection and camX_gf or (mustHitSection and camX_player or camX_opponent)
