@@ -1,4 +1,4 @@
--- | CamFlow v1.1 Fix | By LuaXdea |
+-- | CamFlow v1.2 | By LuaXdea |
 -- [YouTube]: https://youtube.com/@lua-x-dea?si=NRm2RlRsL8BLxAl5
 
 -- | Configuración |
@@ -57,12 +57,12 @@ local directionOffsets = {
 }
 function onCreatePost()
     if not CustomCam then
-        camX_player= getMidpointX('boyfriend') - 100
-        camY_player = getMidpointY('boyfriend') - 100
-        camX_opponent = getMidpointX('dad') + 150
-        camY_opponent = getMidpointY('dad') - 100
-        camX_gf = getMidpointX('gf')
-        camY_gf = getMidpointY('gf')
+        camX_player= getMidpointX('boyfriend') - getProperty('boyfriend.cameraPosition[0]') - getProperty('boyfriendCameraOffset[0]') - 100
+        camY_player = getMidpointY('boyfriend') + getProperty('boyfriend.cameraPosition[1]') + getProperty('boyfriendCameraOffset[1]') - 100
+        camX_opponent = getMidpointX('dad') + getProperty('dad.cameraPosition[0]') + getProperty('opponentCameraOffset[0]') + 150
+        camY_opponent = getMidpointY('dad') + getProperty('dad.cameraPosition[1]') + getProperty('opponentCameraOffset[1]') - 100
+        camX_gf = getMidpointX('gf') + getProperty('gf.cameraPosition[0]') + getProperty('girlfriendCameraOffset[0]')
+        camY_gf = getMidpointY('gf') + getProperty('gf.cameraPosition[1]') + getProperty('girlfriendCameraOffset[1]')
     end
 end
 function onUpdatePost(elapsed)
@@ -78,13 +78,11 @@ function onUpdatePost(elapsed)
             end
         end
         if FollowingMode then
-            FollowX = gfSection and camX_gf or (mustHitSection and camX_player or camX_opponent)
-            FollowY = gfSection and camY_gf or (mustHitSection and camY_player or camY_opponent)
-            setProperty('camFollow.x',FollowX)
-            setProperty('camFollow.y',FollowY)
+            local FollowX = gfSection and camX_gf or (mustHitSection and camX_player or camX_opponent)
+            local FollowY = gfSection and camY_gf or (mustHitSection and camY_player or camY_opponent)
+            callMethod('camFollow.setPosition',{FollowX,FollowY})
         end
-    local FollowResult = FollowingMode and 'camGame.targetOffset' or not FollowingMode and 'camFollow'
-        setProperty(FollowResult..'.x',offsetX)
-        setProperty(FollowResult..'.y',offsetY)
+    local FollowResult = FollowingMode and 'camGame.targetOffset.set' or not FollowingMode and 'camFollow.setPosition'
+        callMethod(FollowResult,{offsetX,offsetY})
     end
 end
