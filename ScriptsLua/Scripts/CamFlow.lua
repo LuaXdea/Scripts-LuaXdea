@@ -1,26 +1,30 @@
--- | CamFlow v1.2 | By LuaXdea |
+-- | CamFlow v1.5 | By LuaXdea |
 -- [YouTube]: https://youtube.com/@lua-x-dea?si=NRm2RlRsL8BLxAl5
 
 -- | Configuración |
-local CamFlow = true -- Activa el CamFlow [default true]
-local FollowingMode = true --[[ Elige el tipo de desplazamiento que quieres usar:
-    true = targetOffset
-    false = camFollow
-    [default true]
+local CamFlow = true -- Activa el CamFlow [default: true]
+local FollowingMode = {true,'targetOffset'} --[[ Puedes elegir
+    Entre el nuevo que ofrece CamFlow o el seguimiento original.
+    Si pones "true" usaras el nuevo y si pones false el original.
+    Elige también el tipo de desplazamiento que quieres usar,
+    targetOffset o camFollow.
+    [default: {true,'targetOffset'}]
     ]]
 local CameraSpeedOff = true --[[ Puedes desactivar el cameraSpeed en el script,
     Si ya tienes en otro script que ya hace lo mismo,
     Es para evitar problemas si otro script esta usando el cameraSpeed.
-    [default true]
+    [default: true]
     ]]
-local CameraSpeed = 1 -- Velocidad de la cámara [default 1]
+local CameraSpeed = 1 -- Velocidad de la cámara (Requiere CameraSpeedOff = false) [default: 1]
 local CustomCam = false --[[ Personaliza la pocision de las cámaras:
     true = Cámaras personalizadas 
     false = Cámaras por defecto del Psych Engine
-    [default false]
+    [default: false]
     ]]
 
+
 -- | Posiciones de las cámaras | [Configurado para Test]
+-- (Requiere CustomCam)
 -- Esto solo funciona si CustomCam está en true
 -- camX: es la posición horizontal
 -- camY: es la posición vertical
@@ -33,16 +37,21 @@ local camY_gf = 450
 
 
 -- | Offsets |
-local IndividualOffsets = false -- Es para si quieres usar los Offsets por individual [default false]
-local GeneralOffset = 20 -- Reemplaza a los offsets de dad,boyfriend y gf si el IndividualOffsets está en false [default 20]
+local IndividualOffsets = false -- Es para si quieres usar los Offsets por individual [default: false]
+local GeneralOffset = 25 --[[ Reemplaza a los offsets de
+    dad,boyfriend y gf,
+    Si el IndividualOffsets está en false
+    (Requiere IndividualOffsets == false)
+    [default: 25]
+    ]]
 
--- | Offsets de las cámaras |
+-- | Offsets de las cámaras | (Requiere IndividualOffsets)
 -- Offset: Define hasta dónde puede desplazarse la cámara al seguir a los personajes.
 local offset_opponent = 20
 local offset_player = 20
 local offset_gf = 20
 
--- | Dirección de desplazamiento |
+-- | Dirección de desplazamiento | (Requiere FollowingMode[1] = true)
 local directionOffsets = {
     -- [opponentStrums]
     {-1,0}, -- Izquierda [Note 0]
@@ -67,22 +76,27 @@ function onCreatePost()
 end
 function onUpdatePost(elapsed)
     if not CameraSpeedOff then setProperty('cameraSpeed',CameraSpeed) end
-    local offsetX = FollowingMode and 0 or not FollowingMode and gfSection and camX_gf or (mustHitSection and camX_player or camX_opponent)
-    local offsetY = FollowingMode and 0 or not FollowingMode and gfSection and camY_gf or (mustHitSection and camY_player or camY_opponent)
+    if not (FollowingMode[2] == 'targetOffset' or FollowingMode[2] == 'camFollow') then 
+        return debugPrint('English: Only targetOffset or camFollow is allowed.\n\nEspañol: Solo se permite usar targetOffset o camFollow\n ','RED') 
+    end
+    local isTargetOffset = FollowingMode[2] == 'targetOffset'
+    local offsetX = isTargetOffset and 0 or not isTargetOffset and gfSection and camX_gf or (mustHitSection and camX_player or camX_opponent)
+    local offsetY = isTargetOffset and 0 or not isTargetOffset and gfSection and camY_gf or (mustHitSection and camY_player or camY_opponent)
     local Offsets = IndividualOffsets and (gfSection and offset_gf or mustHitSection and offset_player or offset_opponent) or GeneralOffset
+    local anim = getProperty(gfSection and 'gf' or (mustHitSection and 'boyfriend' or 'dad')..'.animation.curAnim.name')
     if CamFlow then
         for i = 0,7 do
             if getPropertyFromGroup('strumLineNotes',i,'animation.curAnim.name') == 'confirm' then
-                offsetX = offsetX + directionOffsets[i + 1][1] * Offsets
-                offsetY = offsetY + directionOffsets[i + 1][2] * Offsets
+                offsetX = FollowingMode[1] and (offsetX + directionOffsets[i + 1][1] * Offsets) or (anim:find('LEFT') and (offsetX - Offsets) or (anim:find('RIGHT') and (offsetX + Offsets) or offsetX))
+                offsetY = FollowingMode[1] and (offsetY + directionOffsets[i + 1][2] * Offsets) or (anim:find('UP') and (offsetY - Offsets) or (anim:find('DOWN') and (offsetY + Offsets) or offsetY))
             end
         end
-        if FollowingMode then
+        if isTargetOffset then
             local FollowX = gfSection and camX_gf or (mustHitSection and camX_player or camX_opponent)
             local FollowY = gfSection and camY_gf or (mustHitSection and camY_player or camY_opponent)
             callMethod('camFollow.setPosition',{FollowX,FollowY})
         end
-    local FollowResult = FollowingMode and 'camGame.targetOffset.set' or not FollowingMode and 'camFollow.setPosition'
+    local FollowResult = isTargetOffset and 'camGame.targetOffset.set' or not isTargetOffset and 'camFollow.setPosition'
         callMethod(FollowResult,{offsetX,offsetY})
     end
 end
