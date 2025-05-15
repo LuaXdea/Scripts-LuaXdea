@@ -1,11 +1,32 @@
 -- | HUD MINI FLOW | By LuaXdea |
-local VersionFlow = '1.6.5.Test' -- Version de HUD MINI FLOW
+local VersionFlow = '1.7' -- Version de HUD MINI FLOW
 -- [YouTube]: https://youtube.com/@lua-x-dea?si=NRm2RlRsL8BLxAl5
 -- [Gamebanana]: https://gamebanana.com/tools/19055
 
 -- | Psych Engine | Supported versions |
 -- • 0.7.2h
 -- • 0.7.3
+
+
+-- | Psych Engine 0.6.3 |
+--[[
+    [Español]
+    Próximamente se añadirá compatibilidad con la versión 0.6.3.
+    Sin embargo, será una adaptación del HUD MINI FLOW v2,
+    por lo que no contará con todas las funciones disponibles en la versión 0.7.
+    Algunas características no estarán presentes o se ajustarán
+    para ofrecer una experiencia lo más similar posible,
+    ya que la versión 0.6.3 carece de ciertos elementos exclusivos de la 0.7.
+
+    [English]
+    Compatibility with version 0.6.3 will be available soon.
+    However, it will be an adapted version of the MINI FLOW HUD v2,
+    so not all features from version 0.7 will be included.
+    Some options will either be missing or adjusted to closely resemble the original,
+    as certain elements only exist in version 0.7.
+]]
+
+
 
 -- | Configuración |
 
@@ -18,6 +39,7 @@ local HealthBarColorFix = true --[[ Si el color de la barra,
     [default: true]
     ]]
 local SmoothHealth = true -- HealthBar se actualizará de forma suave [default: true]
+local SmoothHealthSpeed = 1 -- La velocidad de smoothHealth se puede aumentar para que sea más rapido o lento [default: 1]
 local VersionAlert = true --[[ Te dira avisará si la versión,
     de Psych Engine que estas usando no es compatible,
     con el HUD MINI FLOW
@@ -48,6 +70,9 @@ local DisableBotPlay = false -- Evita que el jugador use botplay [default: false
 -- | UI settings |
 local UiGroupCam = 'camHUD' -- Cámara para uiGroup [default: camHUD]
 local ComboGroupCam = 'camHUD' -- Cámara para comboGroup [default: camHUD]
+local ShowCombo = false -- Combo [default: false]
+local ShowComboNum = true -- Combo de números [default: true]
+local ShowRating = true -- Clasificaciones [default: true]
 local StrumCamera = 'camHUD' -- Selecciona una cámara para los Strums [default: camHUD]
 local Strums = 'strumLineNotes' --[[ Cual de los 3 Strums se usara
     para cambiar de cámara:
@@ -65,12 +90,9 @@ local IconScaleX = 0.7 -- EscalaX base de los iconos [default: 0.7]
 local IconScaleY = 0.7 -- EscalaY base de los iconos [default: 0.7]
 local IconsArrows = true -- Los iconos se moverán con cada nota [default: true]
 local IconMove = 7 -- Intensidad de movimiento (Requiere IconsArrows) [default: 7]
-local IconsScaleBeatOn = true -- Activa el IconsScaleBeat
+local IconsScaleBeatOn = true -- Activa el IconsScaleBeat [default: true]
 local IconScaleBeatX = 0.8 -- Por cada Beat hará un cambio en su escalaX [default: 0.8]
 local IconScaleBeatY = 0.8 -- Por cada Beat hará un cambio en su escalaY [default: 0.8]
-local ShowCombo = false -- Combo [default: false]
-local ShowComboNum = true -- Combo de números [default: true]
-local ShowRating = true -- Clasificaciones [default: true]
 
 
 -- | Simple Human Bot | Original: https://gamebanana.com/tools/18226
@@ -81,6 +103,11 @@ local precision = 'Normal' --[[ Precision del bot
     ]]
 local customOffsetRange = {-100,80} --[[ Precision personalizable
     (Requiere ActivateBot) [default: {-100,80}]
+    ]]
+local missChance = 0 --[[ Si se establece un número cercano a 1,
+    el bot tendrá más probabilidades de fallar notas
+    [default: 0]
+    Idea de -> iamcyklus
     ]]
 
 
@@ -116,10 +143,12 @@ local ColorScoreMini = '00FF00' --[[ El color que se volverá,
 
 -- | CamFlow |
 local CamFlow = true -- Activa el CamFlow [default: true]
-local FollowingMode = true --[[ Elige el tipo de desplazamiento que quieres usar:
-    true = targetOffset
-    false = camFollow
-    [default: true]
+local FollowingMode = {true,'targetOffset'} --[[ Puedes elegir
+    Entre el nuevo que ofrece CamFlow o el seguimiento original.
+    Si pones "true" usaras el nuevo y si pones false el original.
+    Elige también el tipo de desplazamiento que quieres usar,
+    targetOffset o camFollow.
+    [default: {true,'targetOffset'}]
     ]]
 local CameraSpeedOff = true --[[ Puedes desactivar el cameraSpeed en el script,
     Si ya tienes en otro script que ya hace lo mismo,
@@ -158,11 +187,11 @@ local GeneralOffset = 25 --[[ Reemplaza a los offsets de
 
 -- | Offsets de las cámaras | (Requiere IndividualOffsets)
 -- Offset: Define hasta dónde puede desplazarse la cámara al seguir a los personajes.
-local offset_opponent = 20
-local offset_player = 20
-local offset_gf = 20
+local offset_opponent = 25
+local offset_player = 25
+local offset_gf = 25
 
--- | Dirección de desplazamiento |
+-- | Dirección de desplazamiento | (Requiere FollowingMode[1] = true)
 local directionOffsets = {
     -- [opponentStrums]
     {-1,0}, -- Izquierda [Note 0]
@@ -189,8 +218,7 @@ function Materials()
         scaleObject('Background',0.05,0.05)
         setProperty('Background.color',getColorFromHex('840000'))
         setProperty('Background.alpha',0.35)
-        setProperty('Background.velocity.x',-100)
-        setProperty('Background.velocity.y',100)
+        callMethod('Background.velocity.set',{-100,100})
         addInstance('Background',true)
 
         makeLuaText('T1','English:\nThe Psych Engine version you are using is not compatible with "HUD MINI FLOW v'..VersionFlow..'"\n\nEspañol:\nLa versión de Psych Engine que estás usando no es compatible con "HUD MINI FLOW v'..VersionFlow..'"',screenWidth,0,screenHeight / 2.5)
@@ -301,6 +329,7 @@ function onTimerCompleted(tag,loops,loopsLeft)
 end
 function onEvent(eventName,value1,value2,strumTime)
     IconMakerRefresh(eventName,value1) -- IconMakerRefresh [eventName,value1]
+    EventFlow(eventName,value1,value2) -- EventFlow [eventName,value1,value2]
 end
 
 
@@ -391,8 +420,9 @@ function IconsScaleBeat()
     if IconsScaleBeatOn then
         for _,i in pairs({'iconBF','iconDad'}) do
             callMethod(i..'.scale.set',{IconScaleBeatX,IconScaleBeatY})
-            doTweenX('Tween'..i..'ScaleX',i..'.scale',IconScaleX,0.5,'bounceOut')
-            doTweenY('Tween'..i..'ScaleY',i..'.scale',IconScaleY,0.5,'bounceOut')
+            startTween('Tween'..i..'ScaleXY',i..'.scale',{x = IconScaleX,y = IconScaleY},0.5,{ease = 'bounceOut'})
+            -- doTweenX('Tween'..i..'ScaleX',i..'.scale',IconScaleX,0.5,'bounceOut')
+            -- doTweenY('Tween'..i..'ScaleY',i..'.scale',IconScaleY,0.5,'bounceOut')
         end
     end
 end
@@ -456,12 +486,13 @@ function HealthDrain()
 end
 
 
--- Simple Human Bot
+-- Simple Human Bot v1.2
 function SimpleHumanBot()
     runHaxeCode([[
     var ActivateBot = ]]..tostring(ActivateBot)..[[;
     var precision = "]]..precision..[[";
     var customOffsetRange = []]..customOffsetRange[1]..[[,]]..customOffsetRange[2]..[[];
+    var missChance = ]]..missChance..[[;
 
    if (!ActivateBot) return;
         var songPos = Conductor.songPosition;
@@ -477,7 +508,7 @@ function SimpleHumanBot()
                 default:
                     randomOffset = FlxG.random.int(-100,100);
             }
-            if (note.canBeHit && note.strumTime <= songPos - randomOffset && !note.ignoreNote) {
+            if (note.canBeHit && note.strumTime <= songPos - randomOffset && !note.ignoreNote && FlxG.random.float(0,1) > missChance) {
                 game.goodNoteHit(note);
             }
         }
@@ -577,7 +608,7 @@ function ExtrasUpdatePost(elapsed)
     if SmoothHealth then
         runHaxeCode([[
         var smoothHealth = game.variables.get('smoothHealth');
-        var factor = FlxMath.bound(]]..elapsed..[[ * 10 * game.playbackRate,0,1);
+        var factor = FlxMath.bound(]]..elapsed..[[ * ]]..SmoothHealthSpeed..[[ * game.playbackRate,0,1);
             game.variables.set('smoothHealth',FlxMath.lerp(smoothHealth,game.health,factor));
         ]])
     end
@@ -585,6 +616,7 @@ function ExtrasUpdatePost(elapsed)
         setProperty('camGame.alpha',0.5)
         setProperty('camHUD.alpha',0.5)
     end
+    -- Error de la 0.7.2h con el grpNoteSplashes
     for i = 0,getProperty('grpNoteSplashes.length') - 1 do
         if version == '0.7.2h' then
             setPropertyFromGroup('grpNoteSplashes',i,'visible',false)
@@ -593,7 +625,7 @@ function ExtrasUpdatePost(elapsed)
 end
 
 
--- ScoreMini
+-- ScoreMini v1
 local ScoreActual = getProperty('songScore')
 local timerUp,timerDown,incrementStageUp,incrementStageDown = 0,0,0,0
 local incrementSpeed = {up = 1,down = 1}
@@ -631,31 +663,38 @@ function ScoreMiniPost(elapsed)
 end
 
 
--- CamFlow
+-- CamFlow v1.5
+-- Estoy tratando de hacer el CamFlow lo mas compacto posible
+-- Eventos disponibles en la v2 Pronto...
 function onCamFlow()
     if not CameraSpeedOff then setProperty('cameraSpeed',CameraSpeed) end
-    local offsetX = FollowingMode and 0 or not FollowingMode and gfSection and camX_gf or (mustHitSection and camX_player or camX_opponent)
-    local offsetY = FollowingMode and 0 or not FollowingMode and gfSection and camY_gf or (mustHitSection and camY_player or camY_opponent)
+    if not (FollowingMode[2] == 'targetOffset' or FollowingMode[2] == 'camFollow') then 
+        return debugPrint('English: Only targetOffset or camFollow is allowed.\n\nEspañol: Solo se permite usar targetOffset o camFollow\n ','RED') 
+    end
+    local isTargetOffset = FollowingMode[2] == 'targetOffset'
+    local offsetX = isTargetOffset and 0 or not isTargetOffset and gfSection and camX_gf or (mustHitSection and camX_player or camX_opponent)
+    local offsetY = isTargetOffset and 0 or not isTargetOffset and gfSection and camY_gf or (mustHitSection and camY_player or camY_opponent)
     local Offsets = IndividualOffsets and (gfSection and offset_gf or mustHitSection and offset_player or offset_opponent) or GeneralOffset
+    local anim = getProperty(gfSection and 'gf' or (mustHitSection and 'boyfriend' or 'dad')..'.animation.curAnim.name')
     if CamFlow then
         for i = 0,7 do
             if getPropertyFromGroup('strumLineNotes',i,'animation.curAnim.name') == 'confirm' then
-                offsetX = offsetX + directionOffsets[i + 1][1] * Offsets
-                offsetY = offsetY + directionOffsets[i + 1][2] * Offsets
+                offsetX = FollowingMode[1] and (offsetX + directionOffsets[i + 1][1] * Offsets) or (anim:find('LEFT') and (offsetX - Offsets) or (anim:find('RIGHT') and (offsetX + Offsets) or offsetX))
+                offsetY = FollowingMode[1] and (offsetY + directionOffsets[i + 1][2] * Offsets) or (anim:find('UP') and (offsetY - Offsets) or (anim:find('DOWN') and (offsetY + Offsets) or offsetY))
             end
         end
-        if FollowingMode then
+        if isTargetOffset then
             local FollowX = gfSection and camX_gf or (mustHitSection and camX_player or camX_opponent)
             local FollowY = gfSection and camY_gf or (mustHitSection and camY_player or camY_opponent)
             callMethod('camFollow.setPosition',{FollowX,FollowY})
         end
-    local FollowResult = FollowingMode and 'camGame.targetOffset.set' or not FollowingMode and 'camFollow.setPosition'
+    local FollowResult = isTargetOffset and 'camGame.targetOffset.set' or not isTargetOffset and 'camFollow.setPosition'
         callMethod(FollowResult,{offsetX,offsetY})
     end
 end
 
 
--- healthBarFix
+-- healthBarFix v1.2
 function healthBarFix()
     if HealthBarColorFix then
         bfRGB,dadRGB = getProperty('boyfriend.healthColorArray'),getProperty('dad.healthColorArray')
@@ -691,3 +730,7 @@ function rgbToHex(input,g,b)
     end
     return string.format('0x%02X%02X%02X',r,g,b)
 end
+
+
+
+-- Reporte cualquier error de forma detallada a LuaXdea
