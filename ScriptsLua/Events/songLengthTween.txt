@@ -1,0 +1,14 @@
+Value 1: songLength
+Value 2: Duration, ease
+
+Ejemplo:
+Value 1: 1:26
+Value 2: 1,circOut
+
+Segundo ejemplo:
+Value 1: 0:45
+Value 2: 0.5
+
+Si no colocas nada por defecto sera;
+Value1: songLength -> actual
+Value2: 0.5,linear
