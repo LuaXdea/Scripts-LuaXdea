@@ -1,10 +1,11 @@
--- | backportFunctions [Test] | by LuaXdea |
+-- | backportFunctions [Test 2] | by LuaXdea |
 
 function onCreate()
     runHaxeCode([[
     import psychlua.FunkinLua;
     import psychlua.LuaUtils;
     import states.MainMenuState;
+    import objects.StrumNote;
 
     if (MainMenuState.psychEngineVersion == '0.7.1h') {
         FunkinLua.customFunctions.set('instanceArg',function(instanceName:String,?className:String = null) {
@@ -83,6 +84,33 @@ function onCreate()
                 return;
             }
             luaTrace('setObjectOrder: Object $obj doesn\'t exist!', false,false,FlxColor.RED);
+        });
+        FunkinLua.customFunctions.set('noteTweenScale',function(tag:String,note:Int,?scaleX:Float,?scaleY:Float,?duration:Float,?ease:String) {
+            if (duration == null || duration <= 0) duration = 0.5;
+            if (ease == null || Reflect.field(FlxEase,ease) == null) ease = 'linear';
+            if (game.modchartTweens == null) game.modchartTweens = new Map<String,FlxTween>();
+            if (game.modchartTweens.exists(tag)) {
+                var tween = game.modchartTweens.get(tag);
+                if (tween != null) tween.cancel();
+                game.modchartTweens.remove(tag);
+            }
+            if (note < 0) note = 0;
+            var NoteName:StrumNote = game.strumLineNotes.members[note % game.strumLineNotes.length];
+            if (NoteName != null) {
+                if (scaleX == null) scaleX = NoteName.scale.x;
+                if (scaleY == null) scaleY = NoteName.scale.y;
+                var easeFunction = Reflect.field(FlxEase,ease);
+                game.modchartTweens.set(tag,FlxTween.tween(NoteName.scale,{x: scaleX,y: scaleY},duration,{
+                    ease: easeFunction,
+                    onComplete: function(twn:FlxTween) {
+                        game.callOnLuas('onTweenCompleted',[tag]);
+                        game.modchartTweens.remove(tag);
+                    }
+                }));
+            }
+        });
+        FunkinLua.customFunctions.set('print',function(text:String) {
+            debugPrint(text);
         });
         FunkinLua.customFunctions.set('setCameraScroll',function(x:Float,y:Float) {
             FlxG.camera.scroll.set(x - FlxG.width / 2,y - FlxG.height / 2);
