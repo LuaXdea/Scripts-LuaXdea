@@ -1,4 +1,6 @@
--- | backportFunctions [Test 2] | by LuaXdea |
+-- | backportFunctions [Test 3] | by LuaXdea |
+-- | Este Script puede llegar a generar algunos errores |
+-- | Es un pequeño proyecto que lo ire actualizando poco a poco |
 
 function onCreate()
     runHaxeCode([[
@@ -108,6 +110,15 @@ function onCreate()
                     }
                 }));
             }
+        });
+        FunkinLua.customFunctions.set('saveFile',function(filePath:String,content:String,?absolute:Bool = false) {
+            var path = absolute ? filePath : Paths.mods(filePath);
+            var dir = path.substring(0,path.lastIndexOf("/"));
+            if (!FileSystem.exists(dir)) {
+                FileSystem.createDirectory(dir);
+            }
+            File.saveContent(path,content);
+            return true;
         });
         FunkinLua.customFunctions.set('print',function(text:String) {
             debugPrint(text);
