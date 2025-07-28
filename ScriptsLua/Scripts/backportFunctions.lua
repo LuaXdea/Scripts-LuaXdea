@@ -9,13 +9,6 @@ function onCreate()
     import states.MainMenuState;
     import objects.StrumNote;
 
-    if (MainMenuState.psychEngineVersion == '0.7.1h') {
-        FunkinLua.customFunctions.set('instanceArg',function(instanceName:String,?className:String = null) {
-            var retStr:String ='$instanceStr::$instanceName';
-            if(className != null) retStr += '::$className';
-            return retStr;
-        });
-    }
         FunkinLua.customFunctions.set('loadMultipleFrames',function(variable:String,images:Array<String>) {
             var split:Array<String> = variable.split('.');
             var spr:FlxSprite = LuaUtils.getObjectDirectly(split[0]);
