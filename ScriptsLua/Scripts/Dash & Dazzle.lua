@@ -1,31 +1,11 @@
--- | HUD MINI FLOW | By LuaXdea |
-local VersionFlow = '1.7' -- Version de HUD MINI FLOW
+-- | Dash & Dazzle | By LuaXdea |
+local DashVersion = '0.5-Test' -- Version de Dash & Dazzle
 -- [YouTube]: https://youtube.com/@lua-x-dea?si=NRm2RlRsL8BLxAl5
--- [Gamebanana]: https://gamebanana.com/tools/19055
+-- [Gamebanana]: Soon.....
 
 -- | Psych Engine | Supported versions |
 -- • 0.7.2h
 -- • 0.7.3
-
-
--- | Psych Engine 0.6.3 |
---[[
-    [Español]
-    Próximamente se añadirá compatibilidad con la versión 0.6.3.
-    Sin embargo, será una adaptación del HUD MINI FLOW v2,
-    por lo que no contará con todas las funciones disponibles en la versión 0.7.
-    Algunas características no estarán presentes o se ajustarán
-    para ofrecer una experiencia lo más similar posible,
-    ya que la versión 0.6.3 carece de ciertos elementos exclusivos de la 0.7.
-
-    [English]
-    Compatibility with version 0.6.3 will be available soon.
-    However, it will be an adapted version of the MINI FLOW HUD v2,
-    so not all features from version 0.7 will be included.
-    Some options will either be missing or adjusted to closely resemble the original,
-    as certain elements only exist in version 0.7.
-]]
-
 
 
 -- | Configuración |
@@ -39,10 +19,10 @@ local HealthBarColorFix = true --[[ Si el color de la barra,
     [default: true]
     ]]
 local SmoothHealth = true -- HealthBar se actualizará de forma suave [default: true]
-local SmoothHealthSpeed = 1 -- La velocidad de smoothHealth se puede aumentar para que sea más rapido o lento [default: 1]
+local SmoothHealthSpeed = 0.5 -- La velocidad de smoothHealth se puede aumentar para que sea más rapido o lento [default: 0.5]
 local VersionAlert = true --[[ Te dira avisará si la versión,
     de Psych Engine que estas usando no es compatible,
-    con el HUD MINI FLOW
+    con el Dash & Dazzle
     (0.7.2h • 0.7.3)
     [default: true]
     ]]
@@ -143,13 +123,6 @@ local ColorScoreMini = '00FF00' --[[ El color que se volverá,
 
 -- | CamFlow |
 local CamFlow = true -- Activa el CamFlow [default: true]
-local FollowingMode = {true,'targetOffset'} --[[ Puedes elegir
-    Entre el nuevo que ofrece CamFlow o el seguimiento original.
-    Si pones "true" usaras el nuevo y si pones false el original.
-    Elige también el tipo de desplazamiento que quieres usar,
-    targetOffset o camFollow.
-    [default: {true,'targetOffset'}]
-    ]]
 local CameraSpeedOff = true --[[ Puedes desactivar el cameraSpeed en el script,
     Si ya tienes en otro script que ya hace lo mismo,
     Es para evitar problemas si otro script esta usando el cameraSpeed.
@@ -206,22 +179,16 @@ local directionOffsets = {
 }
 
 -- Extras
-local PathImages = 'HudMiniFlow/' -- Ruta de materiales
 local VersionCheck = version ~= '0.7.2h' and version ~= '0.7.3' -- Versiones para verificar
 
 function Materials()
     if VersionAlert and VersionCheck then
-        createInstance('Background','flixel.addons.display.FlxBackdrop')
-        loadGraphic('Background',PathImages..'BG')
+        makeLuaSprite('Background')
+        makeGraphic('Background',screenWidth,screenHeight,'000000')
         setObjectCamera('Background','camOther')
-        screenCenter('Background')
-        scaleObject('Background',0.05,0.05)
-        setProperty('Background.color',getColorFromHex('840000'))
-        setProperty('Background.alpha',0.35)
-        callMethod('Background.velocity.set',{-100,100})
-        addInstance('Background',true)
+        addLuaSprite('Background',true)
 
-        makeLuaText('T1','English:\nThe Psych Engine version you are using is not compatible with "HUD MINI FLOW v'..VersionFlow..'"\n\nEspañol:\nLa versión de Psych Engine que estás usando no es compatible con "HUD MINI FLOW v'..VersionFlow..'"',screenWidth,0,screenHeight / 2.5)
+        makeLuaText('T1','English:\nThe Psych Engine version you are using is not compatible with "Dash & Dazzle v'..DashVersion..'"\n\nEspañol:\nLa versión de Psych Engine que estás usando no es compatible con "Dash & Dazzle v'..DashVersion..'"',screenWidth,0,screenHeight / 2.5)
         setTextSize('T1',23)
         setTextColor('T1','RED')
         setTextAlignment('T1','CENTER')
@@ -334,7 +301,7 @@ end
 
 
 
--- Options
+-- Options v1.1
 local defaultSettings = {}
 function Options()
     local settingsList = {
@@ -344,29 +311,20 @@ function Options()
     for _,setting in pairs(settingsList) do
         defaultSettings[setting] = getPropertyFromClass('backend.ClientPrefs','data.'..setting)
     end
-    if downscroll then
-        setPropertyFromClass('backend.ClientPrefs','data.downScroll',not DisableDownScroll)
-    end
-    if middlescroll then
-        setPropertyFromClass('backend.ClientPrefs','data.middleScroll',not DisableMiddleScroll)
-    end
-    if ghostTapping then
-        setPropertyFromClass('backend.ClientPrefs','data.ghostTapping',not DisableGhostTapping)
-    end
-    if hideHud then
-        setPropertyFromClass('backend.ClientPrefs','data.hideHud',not DisableHideHud)
-    end
-    if scoreZoom then
-        setPropertyFromClass('backend.ClientPrefs','data.scoreZoom',not DisableScoreZoom)
-    end
-    if flashingLights then
-        setPropertyFromClass('backend.ClientPrefs','data.flashing',not DisableFlashingLights)
-    end
-    if lowQuality then
-        setPropertyFromClass('backend.ClientPrefs','data.lowQuality',not DisableLowQuality)
-    end
-    if shadersEnabled then
-        setPropertyFromClass('backend.ClientPrefs','data.shaders',not DisableShadersEnabled)
+    local settingsMap = {
+        {var = downscroll,key = 'downScroll',disable = DisableDownScroll},
+        {var = middlescroll,key = 'middleScroll',disable = DisableMiddleScroll},
+        {var = ghostTapping,key = 'ghostTapping',disable = DisableGhostTapping},
+        {var = hideHud,key = 'hideHud',disable = DisableHideHud},
+        {var = scoreZoom,key = 'scoreZoom',disable = DisableScoreZoom},
+        {var = flashingLights,key = 'flashing',disable = DisableFlashingLights},
+        {var = lowQuality,key = 'lowQuality',disable = DisableLowQuality},
+        {var = shadersEnabled,key = 'shaders',disable = DisableShadersEnabled}
+    }
+    for _,s in pairs(settingsMap) do
+    if s.var then
+            setPropertyFromClass('backend.ClientPrefs','data.'..s.key,not s.disable)
+        end
     end
 end
 function onDestroy()
@@ -377,7 +335,6 @@ end
 
 
 -- UIMaker
--- Nota: El jodido "callMethod" no funcionaba bien con el "HealthIcon", así que mejor use "runHaxeCode"
 function UIMaker()
     runHaxeCode([[
 import objects.HealthIcon;
@@ -395,9 +352,11 @@ import objects.HealthIcon;
     setObjectCamera('uiGroup',UiGroupCam)
     setObjectCamera('comboGroup',ComboGroupCam)
 end
+
+
+-- IconsAnimations
 function IconsAnimations()
-    setProperty('iconP1.visible',false)
-    setProperty('iconP2.visible',false)
+    for i = 1,2 do setProperty('iconP'..i..'.visible',false) end
     setProperty('iconBF.animation.curAnim.curFrame',getProperty('healthBar.percent') < 20 and 1 or 0)
     setProperty('iconDad.animation.curAnim.curFrame',getProperty('healthBar.percent') > 80 and 1 or 0)
     if LowHealthSpin and curStep > 0 then
@@ -405,6 +364,8 @@ function IconsAnimations()
         doTweenAngle('IconDadAngle','iconDad',getProperty('healthBar.percent') > 80 and iconDadAngleDefault + 360 or iconDadAngleDefault,0.3)
     end
 end
+
+
 -- IconMakerRefresh [eventName,value1]
 function IconMakerRefresh(n,v1)
     if n == 'Change Character' then
@@ -415,16 +376,16 @@ function IconMakerRefresh(n,v1)
 end
 
 
--- IconsScaleBeat
+-- IconsScaleBeat v1.1
 function IconsScaleBeat()
     if IconsScaleBeatOn then
-        for _,i in pairs({'iconBF','iconDad'}) do
-            callMethod(i..'.scale.set',{IconScaleBeatX,IconScaleBeatY})
-            startTween('Tween'..i..'ScaleXY',i..'.scale',{x = IconScaleX,y = IconScaleY},0.5,{ease = 'bounceOut'})
-            -- doTweenX('Tween'..i..'ScaleX',i..'.scale',IconScaleX,0.5,'bounceOut')
-            -- doTweenY('Tween'..i..'ScaleY',i..'.scale',IconScaleY,0.5,'bounceOut')
-        end
+        startTween('iconBFScale','iconBF.scale',{x = IconScaleBeatX,y = IconScaleBeatY},0.1,{ease = 'smootherStepOut',onComplete = 'ResetScale'})
+        startTween('iconDadScale','iconDad.scale',{x = IconScaleBeatX,y = IconScaleBeatY},0.1,{ease = 'smootherStepOut',onComplete = 'ResetScale'})
     end
+end
+function ResetScale()
+    startTween('iconBFScale','iconBF.scale',{x = IconScaleX,y = IconScaleY},0.25,{ease = 'smootherStepOut'})
+    startTween('iconDadScale','iconDad.scale',{x = IconScaleX,y = IconScaleY},0.25,{ease = 'smootherStepOut'})
 end
 
 
@@ -453,6 +414,8 @@ function IconDadArrows(noteData)
         runTimer('iconDadReturn',0.15)
     end
 end
+
+
 -- IconsReturn [tag]
 function IconsReturn(t)
     if t == 'iconBFReturn' or t == 'iconDadReturn' then
@@ -545,15 +508,6 @@ function ExtrasCreatePost()
     iconDadYDefault = getProperty('iconDad.y')
     iconBFAngleDefault = getProperty('iconBF.angle')
     iconDadAngleDefault = getProperty('iconDad.angle')
-    -- [DefaultCams]
-    if not CustomCam then
-        camX_player= getMidpointX('boyfriend') - getProperty('boyfriend.cameraPosition[0]') - getProperty('boyfriendCameraOffset[0]') - 100
-        camY_player = getMidpointY('boyfriend') + getProperty('boyfriend.cameraPosition[1]') + getProperty('boyfriendCameraOffset[1]') - 100
-        camX_opponent = getMidpointX('dad') + getProperty('dad.cameraPosition[0]') + getProperty('opponentCameraOffset[0]') + 150
-        camY_opponent = getMidpointY('dad') + getProperty('dad.cameraPosition[1]') + getProperty('opponentCameraOffset[1]') - 100
-        camX_gf = getMidpointX('gf') + getProperty('gf.cameraPosition[0]') + getProperty('girlfriendCameraOffset[0]')
-        camY_gf = getMidpointY('gf') + getProperty('gf.cameraPosition[1]') + getProperty('girlfriendCameraOffset[1]')
-    end
     runHaxeCode([[
     var Camera = game.]]..StrumCamera..[[;
     var strumGroup = game.]]..(Strums == nil and 'strumLineNotes' or Strums)..[[;
@@ -576,15 +530,11 @@ function ExtrasCreatePost()
                 note.cameras = [Camera];
             }
         }
+    if (]]..SmoothHealth..[[) {
+        var HealthSmooth = 1;
+        healthBar.valueFunction = () -> return HealthSmooth = FlxMath.lerp(HealthSmooth,game.health,]]..(SmoothHealthSpeed or 0.5)..[[);
+    }
     ]])
-    if SmoothHealth then
-        runHaxeCode([[
-            game.variables.set('smoothHealth',game.health);
-            game.healthBar.valueFunction = function() { 
-                return game.variables.get('smoothHealth'); 
-            };
-        ]])
-    end
 end
 
 -- ExtrasUpdate (onUpdate)
@@ -605,20 +555,13 @@ end
 
 -- ExtrasUpdatePost (onUpdatePost) [elapsed]
 function ExtrasUpdatePost(elapsed)
-    if SmoothHealth then
-        runHaxeCode([[
-        var smoothHealth = game.variables.get('smoothHealth');
-        var factor = FlxMath.bound(]]..elapsed..[[ * ]]..SmoothHealthSpeed..[[ * game.playbackRate,0,1);
-            game.variables.set('smoothHealth',FlxMath.lerp(smoothHealth,game.health,factor));
-        ]])
-    end
     if VersionAlert and VersionCheck then
         setProperty('camGame.alpha',0.5)
         setProperty('camHUD.alpha',0.5)
     end
-    -- Error de la 0.7.2h con el grpNoteSplashes
+    -- Error de la 0.7.2h y 0.7.3 con el grpNoteSplashes
     for i = 0,getProperty('grpNoteSplashes.length') - 1 do
-        if version == '0.7.2h' then
+        if StrumCamera == 'camGame' and (version == '0.7.2h' or version == '0.7.3') then
             setPropertyFromGroup('grpNoteSplashes',i,'visible',false)
         end
     end
@@ -663,34 +606,25 @@ function ScoreMiniPost(elapsed)
 end
 
 
--- CamFlow v1.5
+-- CamFlow v1.6 [Return]
 -- Estoy tratando de hacer el CamFlow lo mas compacto posible
 -- Eventos disponibles en la v2 Pronto...
 function onCamFlow()
     if not CameraSpeedOff then setProperty('cameraSpeed',CameraSpeed) end
-    if not (FollowingMode[2] == 'targetOffset' or FollowingMode[2] == 'camFollow') then 
-        return debugPrint('English: Only targetOffset or camFollow is allowed.\n\nEspañol: Solo se permite usar targetOffset o camFollow\n ','RED') 
-    end
-    local isTargetOffset = FollowingMode[2] == 'targetOffset'
-    local offsetX = isTargetOffset and 0 or not isTargetOffset and gfSection and camX_gf or (mustHitSection and camX_player or camX_opponent)
-    local offsetY = isTargetOffset and 0 or not isTargetOffset and gfSection and camY_gf or (mustHitSection and camY_player or camY_opponent)
+    local BaseX = gfSection and camX_gf or (mustHitSection and camX_player or camX_opponent)
+    local BaseY = gfSection and camY_gf or (mustHitSection and camY_player or camY_opponent)
+    if CustomCam then callMethod('camFollow.setPosition',{BaseX,BaseY}) end
     local Offsets = IndividualOffsets and (gfSection and offset_gf or mustHitSection and offset_player or offset_opponent) or GeneralOffset
-    local anim = getProperty(gfSection and 'gf' or (mustHitSection and 'boyfriend' or 'dad')..'.animation.curAnim.name')
+    local offsetX,offsetY = 0,0
     if CamFlow then
         for i = 0,7 do
             if getPropertyFromGroup('strumLineNotes',i,'animation.curAnim.name') == 'confirm' then
-                offsetX = FollowingMode[1] and (offsetX + directionOffsets[i + 1][1] * Offsets) or (anim:find('LEFT') and (offsetX - Offsets) or (anim:find('RIGHT') and (offsetX + Offsets) or offsetX))
-                offsetY = FollowingMode[1] and (offsetY + directionOffsets[i + 1][2] * Offsets) or (anim:find('UP') and (offsetY - Offsets) or (anim:find('DOWN') and (offsetY + Offsets) or offsetY))
+                offsetX = offsetX + directionOffsets[i + 1][1] * Offsets
+                offsetY = offsetY + directionOffsets[i + 1][2] * Offsets
             end
         end
-        if isTargetOffset then
-            local FollowX = gfSection and camX_gf or (mustHitSection and camX_player or camX_opponent)
-            local FollowY = gfSection and camY_gf or (mustHitSection and camY_player or camY_opponent)
-            callMethod('camFollow.setPosition',{FollowX,FollowY})
-        end
-    local FollowResult = isTargetOffset and 'camGame.targetOffset.set' or not isTargetOffset and 'camFollow.setPosition'
-        callMethod(FollowResult,{offsetX,offsetY})
     end
+    callMethod('camGame.targetOffset.set',{offsetX,offsetY})
 end
 
 
