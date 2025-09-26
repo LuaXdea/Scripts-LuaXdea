@@ -1,4 +1,4 @@
--- | songLengthTween | by LuaXdea | 0.7.x • 1.0.x |
+-- | songLengthTween v1 | by LuaXdea | 0.7.x • 1.0.x |
 -- [YouTube] https://youtube.com/@lua-x-dea?si=B5m77O3lMFn_GOoa
 
 local RestartSong = false
