@@ -1,7 +1,7 @@
 -- | Dash & Dazzle | By LuaXdea |
 local DashVersion = '0.5-Test' -- Version de Dash & Dazzle
 -- [YouTube]: https://youtube.com/@lua-x-dea?si=NRm2RlRsL8BLxAl5
--- [Gamebanana]: Soon.....
+-- [Github]: https://github.com/LuaXdea/Dash-and-Dazzle
 
 -- | Psych Engine | Supported versions |
 -- • 0.7.2h
