@@ -1,5 +1,5 @@
 --[[
-    | Event: flashLines | - | By LuaXdea [Coder] |
+    | Event: flashLines v1 | - | By LuaXdea [Coder] |
     [YouTube]: https://youtube.com/@lua-x-dea?si=6AIgRDcOr08Aw22Y
 ]]
 local randomActive = false
