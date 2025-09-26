@@ -1,5 +1,5 @@
 --[[
-    | Event: SimpleBar | - | By LuaXdea [Coder] |
+    | Event: SimpleBar v1 | - | By LuaXdea [Coder] |
     [YouTube]: https://youtube.com/@lua-x-dea?si=6AIgRDcOr08Aw22Y
 ]]
 function onCreatePost()
