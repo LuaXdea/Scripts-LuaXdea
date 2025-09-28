@@ -1,0 +1,9 @@
+
+Activa,aplica colores de v2
+Y cambia el color del Base (default: 000000)
+Value1 = '1[,BaseHex]'
+
+Value1 = '0' -> restaura colores originales
+
+Hexadecimal válido, vacío o 'nil' = blanco literal
+Value2 = 'DadHex,BfHex,GfHex'
