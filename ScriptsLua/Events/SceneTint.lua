@@ -1,5 +1,6 @@
--- | SceneTint v1 | by LuaXdea |
+-- | SceneTint v1.1 | by LuaXdea |
 local DadCapa,BfCapa,GfCapa
+local Multiplier = 2
 local OriginalColors = {}
 local Props = {'redMultiplier','greenMultiplier','blueMultiplier','redOffset','greenOffset','blueOffset'}
 
@@ -33,7 +34,7 @@ local function SetCharColor(Char,Token,Restore)
 end
 function onCreate()
     makeLuaSprite('Base')
-    makeGraphic('Base',screenWidth * 2,screenHeight * 2,'000000')
+    makeGraphic('Base',screenWidth * Multiplier,screenHeight * Multiplier,'000000')
     setProperty('Base.alpha',0)
     screenCenter('Base')
     setObjectOrder('Base',400)
