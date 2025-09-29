@@ -1,7 +1,5 @@
---[[
-    | Event: SimpleBar v1 | - | By LuaXdea [Coder] |
-    [YouTube]: https://youtube.com/@lua-x-dea?si=6AIgRDcOr08Aw22Y
-]]
+-- | Event: SimpleBar v1 | - | By LuaXdea |
+-- [YouTube]: https://youtube.com/@lua-x-dea?si=6AIgRDcOr08Aw22Y
 function onCreatePost()
     local barData = {
         {name = 'TopBar',x = 0,y = -360,width = 1280,height = 360},
