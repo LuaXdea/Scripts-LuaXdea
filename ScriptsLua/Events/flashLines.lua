@@ -1,7 +1,5 @@
---[[
-    | Event: flashLines v1 | - | By LuaXdea [Coder] |
-    [YouTube]: https://youtube.com/@lua-x-dea?si=6AIgRDcOr08Aw22Y
-]]
+-- | Event: flashLines v1 | - | By LuaXdea |
+-- [YouTube]: https://youtube.com/@lua-x-dea?si=6AIgRDcOr08Aw22Y
 local randomActive = false
 function onCreate()
     local numLines = 10
