@@ -1,9 +1,7 @@
---[[
-    | Event: FlashLua v1 | - | By LuaXdea [Coder] |
-    [YouTube]: https://youtube.com/@lua-x-dea?si=6AIgRDcOr08Aw22Y
-]]
+-- | Event: FlashLua v1 | - | By LuaXdea |
+-- [YouTube]: https://youtube.com/@lua-x-dea?si=6AIgRDcOr08Aw22Y
 function onCreate()
-    makeLuaSprite('FlashLua',nil)
+    makeLuaSprite('FlashLua')
     makeGraphic('FlashLua',1280,720,'FFFFFF')
     setObjectCamera('FlashLua','camOther')
     setProperty('FlashLua.alpha',0)
